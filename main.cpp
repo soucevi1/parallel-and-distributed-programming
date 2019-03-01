@@ -142,6 +142,7 @@ int main(int argc, char **argv) {
         return -1;
     }
 
+    /*
     cout << "X: " << dims.x << ", Y: " << dims.y << endl;
     cout << "i1: " << t_info.i1 << ", i2: " << t_info.i2 << endl;
     cout << "c1: " << t_info.c1 << ", c2: " << t_info.c2 << ", cn: " << t_info.cn << endl;
@@ -149,6 +150,27 @@ int main(int argc, char **argv) {
     for(unsigned long i=0; i<forbidden_count; i++){
         cout << "[" << forbidden[i].x << ", " << forbidden[i].y << "]" << endl;
     }
+     */
+
+
+    /*
+     * Vytvorit prazdnou mapu - nejlepsi dosazene reseni, pamatovat si jeji cenu
+     *
+     * Nagenerovat si podstromy
+     *      - vytvorit 5 map (na prvni volne policko polozit 4 zpusoby a nepolozit)
+     *      - spocitat ceny, porovnat s nejlepsim
+     *      - ulozit do fronty
+     *
+     * Dokud fronta neprazdna: Vzit z fronty mapu
+     *
+     * Zacit na podstromu funkci DFS
+     *      - z uzlu (stavu mapy) pro kazde nasledujici policko:
+     *          - kdyz nemuzu pridat dlazdici, koncim
+     *          - jinak volat funkci DFS s mapou, kam pridam jednu dlazdici na aktualni nasledujici policko
+     *          - u kazdeho stavu pocitat cenu a porovnavat s nejlepsi
+     *
+     * Pamatovat si aktualni cislo policka, aby sel udelat cyklus testovani policek od aktualniho do konce
+     */
 
     f.close();
 
