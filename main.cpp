@@ -4,15 +4,13 @@
 #include <sstream>
 #include <vector>
 
+#include "pole.cpp"
+#include "solution.cpp"
+#include "constants.h"
 
 using namespace std;
 
 struct dimensions {
-    int x;
-    int y;
-};
-
-struct coords{
     int x;
     int y;
 };
@@ -103,7 +101,7 @@ vector<coords> get_forbidden_fields(ifstream &f){
         getline(f, line);
         stringstream str(line);
 
-        coords c = {0,0};
+        coords c(0,0);
         str >> c.x;
         str >> c.y;
 
@@ -152,6 +150,30 @@ int main(int argc, char **argv) {
     }
      */
 
+    f.close();
+
+
+    // test pole
+    vector<coords> forb = {coords(2,4), coords(3,3)};
+    pole p(7, 9, 2, forb);
+    //p.print();
+    cout << "free " << p.is_free(1,1) << ", " << p.is_free(2,4) << endl;
+
+    solution s(p, coords(1,1), 0, 0, 61, 15);
+    s.print_map();
+    cout << "fit " << s.check_if_tile_fits(3, coords(15, 18), HORIZONTAL) << endl;
+
+    solution s2 = s;
+    s2.add_tile(3, coords(2,0), VERTICAL);
+    s2.print_map();
+
+    solution s3 = s2;
+    s3.add_tile(6, coords(0,0), HORIZONTAL);
+    cout << endl;
+    s3.print_map();
+
+
+
 
     /*
      * Vytvorit prazdnou mapu - nejlepsi dosazene reseni, pamatovat si jeji cenu
@@ -172,7 +194,6 @@ int main(int argc, char **argv) {
      * Pamatovat si aktualni cislo policka, aby sel udelat cyklus testovani policek od aktualniho do konce
      */
 
-    f.close();
 
     return 0;
 }
