@@ -26,15 +26,17 @@ public:
     int free_cost;
     int free_count;
 
-    solution(pole p, coords pos, int t1, int t2, int f, int c);
+    solution(pole p, coords pos, int t1, int t2, int f, int c1, int c2, int c3, int c);
 
     void recalculate_cost();
 
-    void add_tile(int length, coords pos, int direction);
+    void add_tile(int length, int type, coords pos, int direction);
 
     bool check_if_tile_fits(int length, coords pos, int direction);
 
-    coords next_position();
+    coords next_position(coords current);
+
+    coords next_free_position(coords current);
 
     void print_map();
 };

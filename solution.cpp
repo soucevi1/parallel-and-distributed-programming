@@ -6,11 +6,15 @@
 #include "constants.h"
 #include "coords.h"
 
-solution::solution(pole p, coords pos, int t1, int t2, int f, int c) : current_state(p), current_position(pos),
-                                                                       type1_count(t1),
-                                                                       type2_count(t2),
-                                                                       free_count(f),
-                                                                       cost(c) {};
+solution::solution(pole p, coords pos, int t1, int t2, int f, int c1, int c2, int c3, int c) : current_state(p),
+                                                                                               current_position(pos),
+                                                                                               type1_count(t1),
+                                                                                               type1_cost(c1),
+                                                                                               type2_count(t2),
+                                                                                               type2_cost(c2),
+                                                                                               free_count(f),
+                                                                                               free_cost(c3),
+                                                                                               cost(c) {};
 
 void solution::recalculate_cost() {
     cost = type1_cost * type1_count + type2_cost * type2_count + free_count * free_cost;
@@ -46,7 +50,7 @@ bool solution::check_if_tile_fits(int length, coords pos, int direction) {
     return true;
 }
 
-void solution::add_tile(int length, coords pos, int direction) {
+void solution::add_tile(int length, int type, coords pos, int direction) {
 
     int id = current_state.y_dim * pos.x + pos.y;
     if (direction == VERTICAL) {
@@ -62,19 +66,46 @@ void solution::add_tile(int length, coords pos, int direction) {
         }
     }
 
+    if (type == 1) {
+        type1_count++;
+    } else {
+        type2_count++;
+    }
+    free_count -= length;
 }
 
-coords solution::next_position() {
-    coords c;
-    if (current_position.x >= current_state.x_dim - 1) {
-        c.x = 0;
-    } else {
-        c.x = current_position.x + 1;
+coords solution::next_position(coords current) {
+    coords c(-1, -1);
+
+    if ((current.x >= current_state.x_dim - 1) && (current.y >= current_state.y_dim - 1)) {
+        return c;
     }
-    c.y = current_position.y + 1;
+
+    if (current.y >= current_state.y_dim - 1) {
+        c.y = 0;
+        c.x = current.x + 1;
+    } else {
+        c.x = current.x;
+        c.y = current.y + 1;
+    }
     return c;
 }
 
 void solution::print_map() {
     current_state.print();
+}
+
+coords solution::next_free_position(coords current) {
+    coords c(-1, -1);
+    int num_fields = current_state.x_dim * current_state.y_dim;
+    int current_num = current_state.y_dim * current_position.x + current_position.y;
+
+    for (int i = current_num + 1; i < num_fields; i++) {
+        coords next = next_position(current);
+        if (current_state.is_free(next.x, next.y)) {
+            return next;
+        }
+        current = next;
+    }
+    return c;
 }

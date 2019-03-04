@@ -7,6 +7,7 @@
 #include "pole.cpp"
 #include "solution.cpp"
 #include "constants.h"
+#include "solver.h"
 
 using namespace std;
 
@@ -152,27 +153,8 @@ int main(int argc, char **argv) {
 
     f.close();
 
-
-    // test pole
-    vector<coords> forb = {coords(2,4), coords(3,3)};
-    pole p(7, 9, 2, forb);
-    //p.print();
-    cout << "free " << p.is_free(1,1) << ", " << p.is_free(2,4) << endl;
-
-    solution s(p, coords(1,1), 0, 0, 61, 15);
-    s.print_map();
-    cout << "fit " << s.check_if_tile_fits(3, coords(15, 18), HORIZONTAL) << endl;
-
-    solution s2 = s;
-    s2.add_tile(3, coords(2,0), VERTICAL);
-    s2.print_map();
-
-    solution s3 = s2;
-    s3.add_tile(6, coords(0,0), HORIZONTAL);
-    cout << endl;
-    s3.print_map();
-
-
+    solver s(dims.x, dims.y, forbidden_count, forbidden, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
+    s.print();
 
 
     /*
