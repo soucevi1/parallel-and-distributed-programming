@@ -103,8 +103,8 @@ vector<coords> get_forbidden_fields(ifstream &f){
         stringstream str(line);
 
         coords c(0,0);
-        str >> c.x;
         str >> c.y;
+        str >> c.x;
 
         v.push_back(c);
     }
@@ -153,8 +153,11 @@ int main(int argc, char **argv) {
 
     f.close();
 
-    solver s(dims.x, dims.y, forbidden_count, forbidden, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
-    s.print();
+    pole p(dims.x, dims.y, forbidden_count, forbidden);
+
+    solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
+    s.solve();
+
 
 
     /*

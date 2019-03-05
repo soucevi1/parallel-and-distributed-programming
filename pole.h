@@ -23,8 +23,9 @@ public:
 
     int **map;
 
-    pole(int x, int y, int forb, vector<coords> f);
+    pole(int x, int y, unsigned long forb, vector<coords> f);
     pole(const pole & p);
+    pole();
     ~pole();
 
     pole & operator=(const pole & p);

@@ -10,7 +10,7 @@
 
 using namespace std;
 
-pole::pole(int x, int y, int forbidden_cnt, vector<coords> forb){
+pole::pole(int x, int y, unsigned long forbidden_cnt, vector<coords> forb){
     x_dim = x;
     y_dim = y;
     forbidden_count = forbidden_cnt;
@@ -34,6 +34,10 @@ pole::pole(int x, int y, int forbidden_cnt, vector<coords> forb){
 }
 
 pole::~pole() {
+    if(!map){
+        return;
+    }
+
     for(int i=0; i<x_dim; i++){
         delete [] map[i];
     }
@@ -91,4 +95,12 @@ pole & pole::operator=(const pole &p) {
             map[i][j] = p.map[i][j];
         }
     }
+}
+
+pole::pole() {
+    map = nullptr;
+    x_dim = 0;
+    y_dim = 0;
+    forbidden_count = 0;
+    forbidden = vector<coords> {};
 }

@@ -7,17 +7,17 @@
 
 #include <vector>
 #include "coords.h"
+#include "pole.h"
+#include "solution.h"
+#include <queue>
 
 using namespace std;
 
 class solver {
 public:
-    solver(int x, int y, unsigned long forb_cnt, vector<coords> forb, int i1, int i2, int c1, int c2, int cn);
+    solver(pole p, int i1, int i2, int c1, int c2, int cn);
 
-    int dim_x;
-    int dim_y;
-    unsigned long forbidden_count;
-    vector<coords> forbidden;
+    pole map;
 
     int type1_len;
     int type2_len;
@@ -26,7 +26,15 @@ public:
     int type2_cost;
     int free_cost;
 
+    solution current_best;
+
     void print();
+
+    queue<solution> generate_initial_solutions();
+
+    void solve();
+
+    void find_cover(solution & s, coords position);
 
 };
 
