@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <ctime>
 
 #include "pole.cpp"
 #include "solution.cpp"
@@ -119,7 +120,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    cout << "Filename is: " << filename << endl;
+    //cout << "Filename is: " << filename << endl;
 
     ifstream f;
     f.open(filename, ios_base::in);
@@ -141,46 +142,21 @@ int main(int argc, char **argv) {
         return -1;
     }
 
-    /*
-    cout << "X: " << dims.x << ", Y: " << dims.y << endl;
-    cout << "i1: " << t_info.i1 << ", i2: " << t_info.i2 << endl;
-    cout << "c1: " << t_info.c1 << ", c2: " << t_info.c2 << ", cn: " << t_info.cn << endl;
-    cout << "Forbidden: " << forbidden_count << endl;
-    for(unsigned long i=0; i<forbidden_count; i++){
-        cout << "[" << forbidden[i].x << ", " << forbidden[i].y << "]" << endl;
-    }
-     */
-
     f.close();
 
     pole p(dims.x, dims.y, forbidden_count, forbidden);
 
     solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
+
+    // MAIN FUNCTION CALL, measuring the time
+    clock_t begin = clock();
+
     s.solve();
 
+    clock_t end = clock();
+    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 
-
-
-
-    /*
-     * Vytvorit prazdnou mapu - nejlepsi dosazene reseni, pamatovat si jeji cenu
-     *
-     * Nagenerovat si podstromy
-     *      - vytvorit 5 map (na prvni volne policko polozit 4 zpusoby a nepolozit)
-     *      - spocitat ceny, porovnat s nejlepsim
-     *      - ulozit do fronty
-     *
-     * Dokud fronta neprazdna: Vzit z fronty mapu
-     *
-     * Zacit na podstromu funkci DFS
-     *      - z uzlu (stavu mapy) pro kazde nasledujici policko:
-     *          - kdyz nemuzu pridat dlazdici, koncim
-     *          - jinak volat funkci DFS s mapou, kam pridam jednu dlazdici na aktualni nasledujici policko
-     *          - u kazdeho stavu pocitat cenu a porovnavat s nejlepsi
-     *
-     * Pamatovat si aktualni cislo policka, aby sel udelat cyklus testovani policek od aktualniho do konce
-     */
-
+    cout << "Finished in " << elapsed_secs << " seconds" << endl;
 
     return 0;
 }

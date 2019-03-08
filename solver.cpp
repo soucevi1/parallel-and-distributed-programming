@@ -38,28 +38,6 @@ void solver::solve() {
         q.pop();
 
         coords pos = s.next_free_position(coords(0, 0));
-        //s.print_map();
-
-
-        /*
-        for(int j=0; j<s.current_state.x_dim; j++){
-            for(int k=0; k<s.current_state.y_dim; k++){
-                s.current_state.map[j][k] = FORB_POS;
-            }
-        }
-        s.print_map();
-
-        coords c = s.next_free_position(coords(0,0));
-        cout << c.x  << " " << c.y << endl;
-
-        cout << s.current_state.is_free(0, 6) << endl;
-        cout << s.current_state.is_free(8, 0) << endl;
-        cout << s.current_state.is_free(8,6) << endl;
-         */
-
-        //s.print_solution();
-        //int x = s.could_be_better_than_best(coords(8,1));
-
 
         initiate_search(s, pos);
 
@@ -129,14 +107,9 @@ void solver::initiate_search(solution &s, coords initial_position) {
     s.recalculate_cost();
     s.compare_best();
 
-    cout << "Phase 1/5" << endl;
     find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
-    cout << "Phase 2/5" << endl;
     find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
-    cout << "Phase 3/5" << endl;
     find_cover(s, initial_position, type1_len, VERTICAL, 1);
-    cout << "Phase 4/5" << endl;
     find_cover(s, initial_position, type2_len, VERTICAL, 2);
-    cout << "Phase 5/5" << endl;
     find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
 }

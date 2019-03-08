@@ -178,8 +178,8 @@ void solution::compare_best() {
         best_solution.type1_cnt = type1_count;
         best_solution.type2_cnt = type2_count;
 
-        best_solution.print_best();
-        cout << endl;
+        //best_solution.print_best();
+        //cout << endl;
     }
 }
 
@@ -187,26 +187,11 @@ bool solution::could_be_better_than_best(coords position) {
 
     int fields_to_cover = get_following_uncovered_fields(position);
 
-    //cout << "Uncovered: " << fields_to_cover << endl;
-
-    // int id = current_state.y_dim * position.x + position.y;
-    // int fields_left = current_state.x_dim*current_state.y_dim - id;
-
     double hypothetical_max_increase = fields_to_cover * best_cost_per_field;
-
-    //cout << "Best per field: " << best_cost_per_field << endl;
-    //cout << "Hyp inc: " << hypothetical_max_increase << endl;
 
     double hypothetical_max_cost = hypothetical_max_increase + cost - fields_to_cover*free_cost;
 
-    //cout << "HYPO " << hypothetical_max_cost << endl;
-
     return hypothetical_max_cost > (double)best_solution.best_cost;
-
-    //int max_hyp_cost = eval(fields_to_cover);
-
-    //return max_hyp_cost > best_solution.best_cost;
-
 }
 
 int solution::get_following_uncovered_fields(coords position) {
