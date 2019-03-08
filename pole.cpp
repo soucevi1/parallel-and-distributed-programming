@@ -54,6 +54,7 @@ void pole::print() {
         cout << "-";
     }
     cout << endl;
+    int fctr = 0;
     for(int i=0; i<x_dim; i++){
         for(int j=0; j<y_dim; j++){
             cout << setw(3);

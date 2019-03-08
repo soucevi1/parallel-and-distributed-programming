@@ -62,7 +62,11 @@ public:
 
     void compare_best();
 
-    bool could_be_better_than_best();
+    bool could_be_better_than_best(coords position);
+
+    int get_following_uncovered_fields(coords position);
+
+    int eval(int number);
 };
 
 

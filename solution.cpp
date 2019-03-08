@@ -17,15 +17,22 @@ solution::solution(pole map, int t1_count, int t2_count, int free_count, int t1_
                                                        free_cost(free_cost),
                                                        cost(cost),
                                                        type1_length(t1_len),
-                                                       type2_length(t2_len){
+                                                       type2_length(t2_len) {
     best_solution.best_map = current_state;
     best_solution.best_cost = INT_MIN;
     best_solution.type1_cnt = 0;
     best_solution.type2_cnt = 0;
-   /*
+
     best_cost_per_field = 0;
-    if(type1_cost/)
-    */
+    double type1_rel = (double) type1_cost / type1_length;
+    double type2_rel = (double) type2_cost / type2_length;
+
+    if (type1_rel > type2_rel) {
+        best_cost_per_field = type1_rel;
+    } else {
+        best_cost_per_field = type2_rel;
+    }
+
 };
 
 void solution::recalculate_cost() {
@@ -176,12 +183,69 @@ void solution::compare_best() {
     }
 }
 
-bool solution::could_be_better_than_best() {
-    int hypothetical_max_price = 0;
+bool solution::could_be_better_than_best(coords position) {
 
+    int fields_to_cover = get_following_uncovered_fields(position);
 
+    //cout << "Uncovered: " << fields_to_cover << endl;
 
-    return false;
+    // int id = current_state.y_dim * position.x + position.y;
+    // int fields_left = current_state.x_dim*current_state.y_dim - id;
+
+    double hypothetical_max_increase = fields_to_cover * best_cost_per_field;
+
+    //cout << "Best per field: " << best_cost_per_field << endl;
+    //cout << "Hyp inc: " << hypothetical_max_increase << endl;
+
+    double hypothetical_max_cost = hypothetical_max_increase + cost - fields_to_cover*free_cost;
+
+    //cout << "HYPO " << hypothetical_max_cost << endl;
+
+    return hypothetical_max_cost > (double)best_solution.best_cost;
+
+    //int max_hyp_cost = eval(fields_to_cover);
+
+    //return max_hyp_cost > best_solution.best_cost;
+
+}
+
+int solution::get_following_uncovered_fields(coords position) {
+    int counter = 0;
+    for (int i = position.y; i < current_state.y_dim; i++) {
+        if (current_state.map[position.x][i] == FREE_POS) {
+            counter++;
+        }
+    }
+
+    for (int i = 0; i < current_state.x_dim-position.x-1; i++) {
+        for (int j = 0; j < current_state.y_dim; j++) {
+            if (current_state.map[1+i+position.x][j] == FREE_POS) {
+                counter++;
+            }
+        }
+    }
+    //cout << "pos: " << position.x << "," << position.y << " [" << current_state.x_dim << "," << current_state.y_dim << "]"  << " unc: " << counter << endl;
+    return counter;
+}
+
+int solution::eval(int number) {
+    // vraci maximalni cenu pro "number" nevyresenych policek
+    // returns the maximal price for the "number" of unsolved squares
+    int i, x;
+    int max = type2_cost * (number / type2_length);
+    int zb = number % type2_length;
+    max += type1_cost * (zb / type1_length);
+    zb = zb % type1_length;
+    max += zb * free_cost;
+    for (i = 0; i < (number / type2_length); i++) {
+        x = type2_cost * i;
+        zb = number - i * type2_length;
+        x += type1_cost * (zb / type1_length);
+        zb = zb % type1_length;
+        x += zb * free_cost;
+        if (x > max) max = x;
+    }
+    return max;
 }
 
 void solution::best::print_best() {

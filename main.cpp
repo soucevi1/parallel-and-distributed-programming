@@ -160,6 +160,8 @@ int main(int argc, char **argv) {
 
 
 
+
+
     /*
      * Vytvorit prazdnou mapu - nejlepsi dosazene reseni, pamatovat si jeji cenu
      *

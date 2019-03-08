@@ -57,6 +57,10 @@ void solver::solve() {
         cout << s.current_state.is_free(8,6) << endl;
          */
 
+        //s.print_solution();
+        //int x = s.could_be_better_than_best(coords(8,1));
+
+
         initiate_search(s, pos);
 
         cout << "The BEST solution is:" << endl;
@@ -90,6 +94,14 @@ void solver::find_cover(solution &s, coords position, int tile_length, int tile_
     // The search reached the end
     if(next_position.x == -1){
         // If tile was placed previously, remove it
+        if(tile_placed) {
+            s.remove_tile(tile_length, tile_type, position, tile_orientation);
+            s.recalculate_cost();
+        }
+        return;
+    }
+
+    if(! s.could_be_better_than_best(next_position)){
         if(tile_placed) {
             s.remove_tile(tile_length, tile_type, position, tile_orientation);
             s.recalculate_cost();
