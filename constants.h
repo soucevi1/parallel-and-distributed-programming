@@ -11,5 +11,7 @@
 #define HORIZONTAL 0
 #define VERTICAL 1
 
+#define LEAVE_EMPTY 3
+
 
 #endif //MI_PDP_CONSTANTS_H

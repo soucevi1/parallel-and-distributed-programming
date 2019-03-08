@@ -19,15 +19,30 @@ public:
 
     int type1_count;
     int type1_cost;
+    int type1_length;
 
     int type2_count;
     int type2_cost;
+    int type2_length;
 
     int free_cost;
     int free_count;
 
+    double best_cost_per_field;
+
+    struct best{
+        pole best_map;
+        int best_cost;
+        int type1_cnt;
+        int type2_cnt;
+        void print_best();
+    };
+
+    best best_solution;
+
     solution();
-    solution(pole p, int t1, int t2, int f, int c1, int c2, int c3, int c);
+    solution(pole map, int t1_count, int t2_count, int free_count, int t1_cost, int t2_cost, int free_cost,
+                 int cost, int t1_len, int t2_len);
 
     void recalculate_cost();
 
@@ -44,6 +59,10 @@ public:
     void print_map();
 
     void print_solution();
+
+    void compare_best();
+
+    bool could_be_better_than_best();
 };
 
 

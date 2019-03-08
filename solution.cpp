@@ -5,15 +5,28 @@
 #include "solution.h"
 #include "constants.h"
 #include "coords.h"
+#include <limits.h>
 
-solution::solution(pole p, int t1, int t2, int f, int c1, int c2, int c3, int c) : current_state(p),
-                                                                                   type1_count(t1),
-                                                                                   type1_cost(c1),
-                                                                                   type2_count(t2),
-                                                                                   type2_cost(c2),
-                                                                                   free_count(f),
-                                                                                   free_cost(c3),
-                                                                                   cost(c) {};
+solution::solution(pole map, int t1_count, int t2_count, int free_count, int t1_cost, int t2_cost, int free_cost,
+                   int cost, int t1_len, int t2_len) : current_state(map),
+                                                       type1_count(t1_count),
+                                                       type1_cost(t1_cost),
+                                                       type2_count(t2_count),
+                                                       type2_cost(t2_cost),
+                                                       free_count(free_count),
+                                                       free_cost(free_cost),
+                                                       cost(cost),
+                                                       type1_length(t1_len),
+                                                       type2_length(t2_len){
+    best_solution.best_map = current_state;
+    best_solution.best_cost = INT_MIN;
+    best_solution.type1_cnt = 0;
+    best_solution.type2_cnt = 0;
+   /*
+    best_cost_per_field = 0;
+    if(type1_cost/)
+    */
+};
 
 void solution::recalculate_cost() {
     cost = type1_cost * type1_count + type2_cost * type2_count + free_count * free_cost;
@@ -134,7 +147,7 @@ void solution::remove_tile(int length, int type, coords pos, int direction) {
 
 solution::solution() {
     current_state = pole();
-    current_position = coords(0,0);
+    current_position = coords(0, 0);
     type1_count = 0;
     type1_cost = 0;
     type2_count = 0;
@@ -149,4 +162,30 @@ void solution::print_solution() {
     cout << "# T1: " << type1_count << ", # T2: " << type2_count << endl;
     cout << "# Free: " << free_count << endl;
     cout << endl;
+}
+
+void solution::compare_best() {
+    if (cost > best_solution.best_cost) {
+        best_solution.best_cost = cost;
+        best_solution.best_map = current_state;
+        best_solution.type1_cnt = type1_count;
+        best_solution.type2_cnt = type2_count;
+
+        best_solution.print_best();
+        cout << endl;
+    }
+}
+
+bool solution::could_be_better_than_best() {
+    int hypothetical_max_price = 0;
+
+
+
+    return false;
+}
+
+void solution::best::print_best() {
+    best_map.print();
+    cout << "Cost: " << best_cost << endl;
+    cout << "T1: " << type1_cnt << " T2: " << type2_cnt << endl;
 }

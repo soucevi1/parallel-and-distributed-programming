@@ -50,13 +50,27 @@ bool pole::is_free(int x, int y) {
 }
 
 void pole::print() {
+    for(int i=0; i<3*x_dim+6; i++){
+        cout << "-";
+    }
+    cout << endl;
     for(int i=0; i<x_dim; i++){
         for(int j=0; j<y_dim; j++){
             cout << setw(3);
-            cout << map[i][j] << " ";
+            if(map[i][j] == FREE_POS) {
+                cout << "  ." << " ";
+            } else if(map[i][j] == FORB_POS){
+                cout << "  X" << " ";
+            } else {
+                cout << map[i][j] << " ";
+            }
         }
         cout << setw(1) << endl;
     }
+    for(int i=0; i<3*x_dim+6; i++){
+        cout << "-";
+    }
+    cout << endl;
 }
 
 pole::pole(const pole &p) {

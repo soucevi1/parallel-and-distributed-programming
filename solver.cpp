@@ -15,10 +15,7 @@ solver::solver(pole p, int i1, int i2, int c1, int c2, int cn) : map(p),
                                                                  type2_len(i2),
                                                                  type1_cost(c1),
                                                                  type2_cost(c2),
-                                                                 free_cost(cn) {
-    current_best = solution(p, 0,0, p.x_dim*p.y_dim, type1_cost, type2_cost, free_cost, 0);
-    current_best.recalculate_cost();
-}
+                                                                 free_cost(cn) {}
 
 
 queue<solution> solver::generate_initial_solutions() {
@@ -26,7 +23,7 @@ queue<solution> solver::generate_initial_solutions() {
 
     int free_count = map.x_dim * map.y_dim - map.forbidden_count;
 
-    solution s(map, 0, 0, free_count, type1_cost, type2_cost, free_cost, 0);
+    solution s(map, 0, 0, free_count, type1_cost, type2_cost, free_cost, 0, type1_len, type2_len);
     s.recalculate_cost();
     q.push(s);
 
@@ -36,12 +33,12 @@ queue<solution> solver::generate_initial_solutions() {
 void solver::solve() {
     queue<solution> q = generate_initial_solutions();
 
-    for(int i=0; i<q.size(); i++){
+    for (int i = 0; i < q.size(); i++) {
         solution s = q.back();
         q.pop();
 
-        coords pos = s.next_free_position(coords(0,0));
-        s.print_map();
+        coords pos = s.next_free_position(coords(0, 0));
+        //s.print_map();
 
 
         /*
@@ -60,81 +57,74 @@ void solver::solve() {
         cout << s.current_state.is_free(8,6) << endl;
          */
 
-
-        find_cover(s, pos);
+        initiate_search(s, pos);
 
         cout << "The BEST solution is:" << endl;
-        s.print_solution();
+        s.best_solution.print_best();
 
     }
 }
 
-void solver::find_cover(solution & s, coords position) {
+void solver::find_cover(solution &s, coords position, int tile_length, int tile_orientation, int tile_type) {
 
-    //cout << "pos: " << position.x << " " << position.y << endl;
-    // TODO nefunguje
-    // spatne urceni nejlepsiho reseni
-    // hodne nizka cena
-    // mozna neprojde vse, zkontrolovat, jake a kolik pozic projde
+    bool tile_placed = false;
 
-    s.recalculate_cost();
-    if(s.cost > current_best.cost){
-        current_best = s;
-        cout << "Found better solution:" << endl;
-        s.print_solution();
+    // If supposed to place a tile
+    if (tile_orientation != LEAVE_EMPTY) {
+
+        if (s.check_if_tile_fits(tile_length, position, tile_orientation)) {
+            // If tile fits, add it and recalculate cost
+            s.add_tile(tile_length, tile_type, position, tile_orientation);
+            s.recalculate_cost();
+            s.compare_best();
+            tile_placed = true;
+
+        } else {
+            // Tile cannot be placed -- this branch ends
+            return;
+        }
     }
 
     coords next_position = s.next_free_position(position);
+
+    // The search reached the end
     if(next_position.x == -1){
+        // If tile was placed previously, remove it
+        if(tile_placed) {
+            s.remove_tile(tile_length, tile_type, position, tile_orientation);
+            s.recalculate_cost();
+        }
         return;
     }
 
-    // Horizontal type 1
-    if(s.check_if_tile_fits(type1_len, position, HORIZONTAL)) {
-        s.add_tile(type1_len, 1, position, HORIZONTAL);
-        next_position = s.next_free_position(position);
-        if(next_position.x == -1){
-            return;
-        }
-        find_cover(s, next_position);
-        s.remove_tile(type1_len, 1, position, HORIZONTAL);
+    find_cover(s, next_position, type1_len, HORIZONTAL, 1);
+    find_cover(s, next_position, type2_len, HORIZONTAL, 2);
+
+    find_cover(s, next_position, type1_len, VERTICAL, 1);
+    find_cover(s, next_position, type2_len, VERTICAL, 2);
+
+    find_cover(s, next_position, 0, LEAVE_EMPTY, 0);
+
+    if(tile_placed){
+        s.remove_tile(tile_length, tile_type, position, tile_orientation);
+        s.recalculate_cost();
     }
-
-    // Horizontal type 2
-    if(s.check_if_tile_fits(type2_len, position, HORIZONTAL)) {
-        s.add_tile(type2_len, 2, position, HORIZONTAL);
-        next_position = s.next_free_position(position);
-        if(next_position.x == -1){
-            return;
-        }
-        find_cover(s, next_position);
-        s.remove_tile(type2_len, 2, position, HORIZONTAL);
-    }
-
-    // Vertical type 1
-    if(s.check_if_tile_fits(type1_len, position, VERTICAL)) {
-        s.add_tile(type1_len, 1, position, VERTICAL);
-        next_position = s.next_free_position(position);
-        if(next_position.x == -1){
-            return;
-        }
-        find_cover(s, next_position);
-        s.remove_tile(type1_len, 1, position, VERTICAL);
-    }
-
-    // Vertical type 2
-    if(s.check_if_tile_fits(type2_len, position, VERTICAL)) {
-        s.add_tile(type2_len, 2, position, VERTICAL);
-        next_position = s.next_free_position(position);
-        if(next_position.x == -1){
-            return;
-        }
-        find_cover(s, next_position);
-        s.remove_tile(type2_len, 2, position, VERTICAL);
-    }
-
-    // Leave empty
-    find_cover(s, next_position);
+}
 
 
+// Only one worker executes this code sequentially
+void solver::initiate_search(solution &s, coords initial_position) {
+    s.recalculate_cost();
+    s.compare_best();
+
+    cout << "Phase 1/5" << endl;
+    find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
+    cout << "Phase 2/5" << endl;
+    find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
+    cout << "Phase 3/5" << endl;
+    find_cover(s, initial_position, type1_len, VERTICAL, 1);
+    cout << "Phase 4/5" << endl;
+    find_cover(s, initial_position, type2_len, VERTICAL, 2);
+    cout << "Phase 5/5" << endl;
+    find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
 }

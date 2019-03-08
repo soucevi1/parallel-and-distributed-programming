@@ -26,15 +26,15 @@ public:
     int type2_cost;
     int free_cost;
 
-    solution current_best;
-
     void print();
 
     queue<solution> generate_initial_solutions();
 
     void solve();
 
-    void find_cover(solution & s, coords position);
+    void find_cover(solution &s, coords position, int tile_length, int tile_orientation, int tile_type);
+
+    void initiate_search(solution & s, coords initial_position);
 
 };
 
