@@ -178,8 +178,8 @@ void solution::compare_best() {
         best_solution.type1_cnt = type1_count;
         best_solution.type2_cnt = type2_count;
 
-        //best_solution.print_best();
-        //cout << endl;
+        best_solution.print_best();
+        cout << endl;
     }
 }
 

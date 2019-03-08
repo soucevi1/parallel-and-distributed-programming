@@ -107,9 +107,14 @@ void solver::initiate_search(solution &s, coords initial_position) {
     s.recalculate_cost();
     s.compare_best();
 
+    cout << "Phase 1/5" << endl;
     find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
+    cout << "Phase 2/5" << endl;
     find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
+    cout << "Phase 3/5" << endl;
     find_cover(s, initial_position, type1_len, VERTICAL, 1);
+    cout << "Phase 4/5" << endl;
     find_cover(s, initial_position, type2_len, VERTICAL, 2);
+    cout << "Phase 5/5" << endl;
     find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
 }
