@@ -46,11 +46,11 @@ public:
 
     void recalculate_cost();
 
-    void add_tile(int length, int type, coords pos, int direction);
+    void add_tile(int length, int type, coords &pos, int direction);
 
-    void remove_tile(int length, int type, coords pos, int direction);
+    void remove_tile(int length, int type, coords &pos, int direction);
 
-    bool check_if_tile_fits(int length, coords pos, int direction);
+    bool check_if_tile_fits(int length, coords &pos, int direction);
 
     coords next_position(coords current);
 
@@ -62,9 +62,12 @@ public:
 
     void compare_best();
 
-    bool could_be_better_than_best(coords position);
+    bool could_be_better_than_best(coords &position);
 
-    int get_following_uncovered_fields(coords position);
+    int get_following_uncovered_fields(coords &position);
+
+    bool can_fit_tile_behind(coords &position);
+    bool can_fit_tile_above(coords &position);
 
     int eval(int number);
 };

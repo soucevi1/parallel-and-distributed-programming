@@ -37,7 +37,8 @@ void solver::solve() {
         solution s = q.back();
         q.pop();
 
-        coords pos = s.next_free_position(coords(0, 0));
+        coords init_pos = coords(0,0);
+        coords pos = s.next_free_position(init_pos);
 
         initiate_search(s, pos);
 
@@ -47,7 +48,7 @@ void solver::solve() {
     }
 }
 
-void solver::find_cover(solution &s, coords position, int tile_length, int tile_orientation, int tile_type) {
+void solver::find_cover(solution &s, coords &position, int tile_length, int tile_orientation, int tile_type) {
 
     bool tile_placed = false;
 
@@ -65,6 +66,8 @@ void solver::find_cover(solution &s, coords position, int tile_length, int tile_
             // Tile cannot be placed -- this branch ends
             return;
         }
+    } else if(s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)){
+        return;
     }
 
     coords next_position = s.next_free_position(position);
@@ -78,6 +81,7 @@ void solver::find_cover(solution &s, coords position, int tile_length, int tile_
         }
         return;
     }
+
 
     if(! s.could_be_better_than_best(next_position)){
         if(tile_placed) {

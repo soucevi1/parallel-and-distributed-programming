@@ -39,7 +39,7 @@ void solution::recalculate_cost() {
     cost = type1_cost * type1_count + type2_cost * type2_count + free_count * free_cost;
 }
 
-bool solution::check_if_tile_fits(int length, coords pos, int direction) {
+bool solution::check_if_tile_fits(int length, coords &pos, int direction) {
 
     if (direction == VERTICAL) {
 
@@ -69,7 +69,7 @@ bool solution::check_if_tile_fits(int length, coords pos, int direction) {
     return true;
 }
 
-void solution::add_tile(int length, int type, coords pos, int direction) {
+void solution::add_tile(int length, int type, coords &pos, int direction) {
 
     int id = current_state.y_dim * pos.x + pos.y;
     if (direction == VERTICAL) {
@@ -130,7 +130,7 @@ coords solution::next_free_position(coords current) {
     return c;
 }
 
-void solution::remove_tile(int length, int type, coords pos, int direction) {
+void solution::remove_tile(int length, int type, coords &pos, int direction) {
     if (direction == VERTICAL) {
 
         for (int i = 0; i < length; i++) {
@@ -183,7 +183,7 @@ void solution::compare_best() {
     }
 }
 
-bool solution::could_be_better_than_best(coords position) {
+bool solution::could_be_better_than_best(coords &position) {
 
     int fields_to_cover = get_following_uncovered_fields(position);
 
@@ -194,7 +194,7 @@ bool solution::could_be_better_than_best(coords position) {
     return hypothetical_max_cost > (double)best_solution.best_cost;
 }
 
-int solution::get_following_uncovered_fields(coords position) {
+int solution::get_following_uncovered_fields(coords &position) {
     int counter = 0;
     for (int i = position.y; i < current_state.y_dim; i++) {
         if (current_state.map[position.x][i] == FREE_POS) {
@@ -231,6 +231,38 @@ int solution::eval(int number) {
         if (x > max) max = x;
     }
     return max;
+}
+
+bool solution::can_fit_tile_behind(coords &position) {
+    int shortest_tile_length;
+    shortest_tile_length = type1_length > type2_length ? type2_length : type1_length;
+
+    if(position.y - shortest_tile_length < 0){
+        return false;
+    }
+
+    for(int i=position.y; i > position.y-shortest_tile_length; i--){
+        if(current_state.map[position.x][i] != FREE_POS){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool solution::can_fit_tile_above(coords &position) {
+    int shortest_tile_length;
+    shortest_tile_length = type1_length > type2_length ? type2_length : type1_length;
+
+    if(position.x - shortest_tile_length < 0){
+        return false;
+    }
+
+    for(int i=position.x; i > position.x-shortest_tile_length; i--){
+        if(current_state.map[i][position.y] != FREE_POS){
+            return false;
+        }
+    }
+    return true;
 }
 
 void solution::best::print_best() {
