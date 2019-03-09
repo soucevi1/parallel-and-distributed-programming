@@ -28,7 +28,14 @@ public:
 
     void print();
 
-    queue<solution> generate_initial_solutions();
+    struct initial_solution{
+        solution s;
+        coords pos;
+    };
+
+    void generate_initial_solutions(int required_levels);
+
+    queue<initial_solution> initial_solutions;
 
     void solve();
 

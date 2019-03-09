@@ -46,7 +46,7 @@ public:
 
     void recalculate_cost();
 
-    void add_tile(int length, int type, coords &pos, int direction);
+    void add_tile(int length, int type, coords pos, int direction);
 
     void remove_tile(int length, int type, coords &pos, int direction);
 

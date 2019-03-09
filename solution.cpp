@@ -69,7 +69,7 @@ bool solution::check_if_tile_fits(int length, coords &pos, int direction) {
     return true;
 }
 
-void solution::add_tile(int length, int type, coords &pos, int direction) {
+void solution::add_tile(int length, int type, coords pos, int direction) {
 
     int id = current_state.y_dim * pos.x + pos.y;
     if (direction == VERTICAL) {
