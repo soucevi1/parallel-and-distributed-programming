@@ -164,19 +164,28 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
             s.recalculate_cost();
             s.compare_best();
             tile_placed = true;
+            s.delib_empty_in_row = 0;
 
         } else {
             // Tile cannot be placed -- this branch ends
             return;
         }
+
     } else if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
         return;
     } else {
         s.deliberately_empty_count += 1;
+        s.delib_empty_in_row++;
         dfc_increased = true;
     }
 
     coords next_position = s.next_free_position(position);
+    coords next_immediate = s.next_position(position);
+
+    if (((next_immediate.x != next_position.x) || (next_position.y != next_immediate.y)) ||
+        (next_position.x != position.x)) {
+        s.delib_empty_in_row = 0;
+    }
 
     // The search reached the end
     if (next_position.x == -1) {
@@ -187,6 +196,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
         }
         if (dfc_increased) {
             s.deliberately_empty_count--;
+            s.delib_empty_in_row--;
         }
         return;
     }

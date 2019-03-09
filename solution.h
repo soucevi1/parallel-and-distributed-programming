@@ -26,7 +26,11 @@ public:
     int empty_cost;
     int empty_count;
 
+    int shortest_tile_length;
+
     int deliberately_empty_count;
+
+    int delib_empty_in_row;
 
     struct best{
         pole best_map;

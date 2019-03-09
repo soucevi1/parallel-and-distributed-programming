@@ -18,11 +18,13 @@ solution::solution(pole map, int t1_count, int t2_count, int free_count, int t1_
                                                        deliberately_empty_count(0),
                                                        cost(cost),
                                                        type1_length(t1_len),
-                                                       type2_length(t2_len) {
+                                                       type2_length(t2_len),
+                                                       delib_empty_in_row(0) {
     best_solution.best_map = current_state;
     best_solution.best_cost = INT_MIN;
     best_solution.type1_cnt = 0;
     best_solution.type2_cnt = 0;
+    shortest_tile_length = type1_length > type2_length ? type2_length : type1_length;
 };
 
 void solution::recalculate_cost() {
@@ -178,11 +180,11 @@ bool solution::could_be_better_than_best(coords &position) {
     int hypothetical_cost = cost + eval(empty_count);
 
     // Need to remove the empty penalization
-    hypothetical_cost -= empty_cost*empty_count;
+    hypothetical_cost -= empty_cost * empty_count;
 
     // Add the empty penalization for fields
-    // that werre left empty on purpose
-    hypothetical_cost += empty_cost*deliberately_empty_count;
+    // that were left empty on purpose
+    hypothetical_cost += empty_cost * deliberately_empty_count;
 
     return hypothetical_cost > best_solution.best_cost;
 }
@@ -208,25 +210,10 @@ int solution::eval(int number) {
 }
 
 bool solution::can_fit_tile_behind(coords &position) {
-    int shortest_tile_length;
-    shortest_tile_length = type1_length > type2_length ? type2_length : type1_length;
-
-    if (position.y - shortest_tile_length < 0) {
-        return false;
-    }
-
-    for (int i = position.y; i > position.y - shortest_tile_length; i--) {
-        if (current_state.map[position.x][i] != EMPTY_POS) {
-            return false;
-        }
-    }
-    return true;
+    return shortest_tile_length < delib_empty_in_row;
 }
 
 bool solution::can_fit_tile_above(coords &position) {
-    int shortest_tile_length;
-    shortest_tile_length = type1_length > type2_length ? type2_length : type1_length;
-
     if (position.x - shortest_tile_length < 0) {
         return false;
     }
