@@ -18,7 +18,7 @@ public:
     int x_dim;
     int y_dim;
 
-    int forbidden_count;
+    unsigned long forbidden_count;
     vector<coords> forbidden;
 
     int **map;

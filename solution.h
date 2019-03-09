@@ -15,8 +15,6 @@ public:
 
     int cost;
 
-    coords current_position;
-
     int type1_count;
     int type1_cost;
     int type1_length;
@@ -25,10 +23,10 @@ public:
     int type2_cost;
     int type2_length;
 
-    int free_cost;
-    int free_count;
+    int empty_cost;
+    int empty_count;
 
-    double best_cost_per_field;
+    int deliberately_empty_count;
 
     struct best{
         pole best_map;
@@ -63,8 +61,6 @@ public:
     void compare_best();
 
     bool could_be_better_than_best(coords &position);
-
-    int get_following_uncovered_fields(coords &position);
 
     bool can_fit_tile_behind(coords &position);
     bool can_fit_tile_above(coords &position);
