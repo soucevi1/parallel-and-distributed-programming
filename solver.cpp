@@ -180,12 +180,6 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
     }
 
     coords next_position = s.next_free_position(position);
-    coords next_immediate = s.next_position(position);
-
-    if (((next_immediate.x != next_position.x) || (next_position.y != next_immediate.y)) ||
-        (next_position.x != position.x)) {
-        s.delib_empty_in_row = 0;
-    }
 
     // The search reached the end
     if (next_position.x == -1) {
@@ -201,6 +195,11 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
         return;
     }
 
+    coords next_immediate = s.next_position(position);
+    if (((next_immediate.x != next_position.x) || (next_position.y != next_immediate.y)) ||
+        (next_position.x != position.x)) {
+        s.delib_empty_in_row = 0;
+    }
 
     if (!s.could_be_better_than_best(next_position)) {
         if (tile_placed) {
@@ -209,6 +208,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
         }
         if (dfc_increased) {
             s.deliberately_empty_count--;
+            s.delib_empty_in_row --;
         }
         return;
     }
@@ -228,6 +228,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
 
     if (dfc_increased) {
         s.deliberately_empty_count -= 1;
+        s.delib_empty_in_row --;
     }
 }
 

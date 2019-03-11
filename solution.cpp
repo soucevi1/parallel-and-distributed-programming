@@ -210,7 +210,7 @@ int solution::eval(int number) {
 }
 
 bool solution::can_fit_tile_behind(coords &position) {
-    return shortest_tile_length < delib_empty_in_row;
+    return shortest_tile_length <= delib_empty_in_row;
 }
 
 bool solution::can_fit_tile_above(coords &position) {
