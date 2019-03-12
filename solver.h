@@ -29,8 +29,8 @@ public:
     void print();
 
     struct initial_solution{
-        solution s;
-        coords pos;
+        solution starting_solution;
+        coords position;
     };
 
     solution best_solution;
