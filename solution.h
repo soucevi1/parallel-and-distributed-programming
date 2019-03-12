@@ -37,7 +37,7 @@ public:
         int best_cost;
         int type1_cnt;
         int type2_cnt;
-        void print_best();
+        //void print_best();
     };
 
     best best_solution;
@@ -61,6 +61,8 @@ public:
     void print_map();
 
     void print_solution();
+
+    void print_best();
 
     void compare_best();
 

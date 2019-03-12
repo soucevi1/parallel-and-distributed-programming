@@ -128,8 +128,6 @@ void solver::solve() {
 
     vector<solution> solutions;
 
-    cout << "IS: " << initial_solutions.size() << endl;
-
     // Every worker gets one subproblem to solve
     for (int i = 0; i < initial_solutions.size(); i++) {
         initial_solution s = initial_solutions.front();
@@ -147,7 +145,7 @@ void solver::solve() {
         }
     }
     cout << "The BEST solution is:" << endl;
-    best.best_solution.print_best();
+    best.print_best();
 }
 
 void solver::find_cover(solution &s, coords &position, int tile_length, int tile_orientation, int tile_type) {
@@ -171,12 +169,17 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
             return;
         }
 
-    } else if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
-        return;
+    /*} else if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
+        return;*/
     } else {
-        s.deliberately_empty_count += 1;
+        s.deliberately_empty_count ++;
         s.delib_empty_in_row++;
         dfc_increased = true;
+        if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
+            s.deliberately_empty_count --;
+            s.delib_empty_in_row--;
+            return;
+        }
     }
 
     coords next_position = s.next_free_position(position);
@@ -227,7 +230,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
     }
 
     if (dfc_increased) {
-        s.deliberately_empty_count -= 1;
+        s.deliberately_empty_count --;
         s.delib_empty_in_row --;
     }
 }
@@ -238,14 +241,14 @@ void solver::initiate_search(solution &s, coords initial_position) {
     s.recalculate_cost();
     s.compare_best();
 
-    cout << "Phase 1/5" << endl;
+    //cout << "Phase 1/5" << endl;
     find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
-    cout << "Phase 2/5" << endl;
+    //cout << "Phase 2/5" << endl;
     find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
-    cout << "Phase 3/5" << endl;
+    //cout << "Phase 3/5" << endl;
     find_cover(s, initial_position, type1_len, VERTICAL, 1);
-    cout << "Phase 4/5" << endl;
+    //cout << "Phase 4/5" << endl;
     find_cover(s, initial_position, type2_len, VERTICAL, 2);
-    cout << "Phase 5/5" << endl;
+    //cout << "Phase 5/5" << endl;
     find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
 }

@@ -5,8 +5,8 @@
 #include <vector>
 #include <ctime>
 
-#include "pole.cpp"
-#include "solution.cpp"
+#include "pole.h"
+#include "solution.h"
 #include "constants.h"
 #include "solver.h"
 
