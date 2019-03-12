@@ -21,7 +21,7 @@ solver::solver(pole p, int i1, int i2, int c1, int c2, int cn) : map(p),
 void solver::generate_initial_solutions(int required_levels) {
     queue<initial_solution> q;
 
-    int free_count = (int)(map.x_dim * map.y_dim - map.forbidden_count);
+    int free_count = (int) (map.x_dim * map.y_dim - map.forbidden_count);
 
     solution s(map, 0, 0, free_count, type1_cost, type2_cost, free_cost, 0, type1_len, type2_len);
     s.recalculate_cost();
@@ -53,6 +53,9 @@ void solver::generate_initial_solutions(int required_levels) {
             q.pop();
 
             current_position = tmp.pos;
+            if(current_position.x == -1){
+                continue;
+            }
 
             coords next_position;
 
@@ -60,13 +63,11 @@ void solver::generate_initial_solutions(int required_levels) {
             if (tmp.s.check_if_tile_fits(type1_len, current_position, HORIZONTAL)) {
                 initial_solution tmp1 = tmp;
                 tmp1.s.add_tile(type1_len, 1, current_position, HORIZONTAL);
-                next_position = tmp1.s.next_free_position(tmp1.pos);
-                if (next_position.x == -1) {
-                    break;
-                }
-                tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
-                tmp1.s.compare_best(best_solution);
+                compare_with_best(tmp1.s);
+                next_position = tmp1.s.next_free_position(current_position);
+                tmp1.pos = next_position;
+                tmp1.s.delib_empty_in_row = 0;
                 q_2.push(tmp1);
             }
 
@@ -74,13 +75,11 @@ void solver::generate_initial_solutions(int required_levels) {
             if (tmp.s.check_if_tile_fits(type2_len, current_position, HORIZONTAL)) {
                 initial_solution tmp1 = tmp;
                 tmp1.s.add_tile(type2_len, 2, current_position, HORIZONTAL);
-                next_position = tmp1.s.next_free_position(tmp1.pos);
-                if (next_position.x == -1) {
-                    break;
-                }
-                tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
-                tmp1.s.compare_best(best_solution);
+                compare_with_best(tmp1.s);
+                next_position = tmp1.s.next_free_position(current_position);
+                tmp1.pos = next_position;
+                tmp1.s.delib_empty_in_row = 0;
                 q_2.push(tmp1);
             }
 
@@ -88,13 +87,11 @@ void solver::generate_initial_solutions(int required_levels) {
             if (tmp.s.check_if_tile_fits(type1_len, current_position, VERTICAL)) {
                 initial_solution tmp1 = tmp;
                 tmp1.s.add_tile(type1_len, 1, current_position, VERTICAL);
-                next_position = tmp1.s.next_free_position(tmp1.pos);
-                if (next_position.x == -1) {
-                    break;
-                }
-                tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
-                tmp1.s.compare_best(best_solution);
+                compare_with_best(tmp1.s);
+                next_position = tmp1.s.next_free_position(current_position);
+                tmp1.pos = next_position;
+                tmp1.s.delib_empty_in_row = 0;
                 q_2.push(tmp1);
             }
 
@@ -102,23 +99,19 @@ void solver::generate_initial_solutions(int required_levels) {
             if (tmp.s.check_if_tile_fits(type2_len, current_position, VERTICAL)) {
                 initial_solution tmp1 = tmp;
                 tmp1.s.add_tile(type2_len, 2, current_position, VERTICAL);
-                next_position = tmp1.s.next_free_position(tmp1.pos);
-                if (next_position.x == -1) {
-                    break;
-                }
-                tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
-                tmp1.s.compare_best(best_solution);
+                compare_with_best(tmp1.s);
+                next_position = tmp1.s.next_free_position(current_position);
+                tmp1.pos = next_position;
+                tmp1.s.delib_empty_in_row = 0;
                 q_2.push(tmp1);
             }
 
             // LEAVE EMPTY
-            next_position = tmp.s.next_free_position(tmp.pos);
-            if (next_position.x == -1) {
-                break;
-            }
+            next_position = tmp.s.next_free_position(current_position);
             tmp.pos = next_position;
-            tmp.s.compare_best(best_solution);
+            tmp.s.delib_empty_in_row++;
+            tmp.s.deliberately_empty_count++;
             q_2.push(tmp);
         }
 
@@ -133,16 +126,14 @@ void solver::solve() {
 
     generate_initial_solutions(required_number_of_levels);
 
-    //vector<solution> solutions;
-
     // Every worker gets one subproblem to solve
-    for (int i = 0; i < initial_solutions.size(); i++) {
+    int q_size = (int)initial_solutions.size();
+
+    for (int i = 0; i < q_size; i++) {
         initial_solution s = initial_solutions.front();
         initial_solutions.pop();
 
         initiate_search(s.s, s.pos);
-
-      //  solutions.push_back(s.s);
     }
 
     cout << "The BEST solution is:" << endl;
@@ -161,7 +152,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
             // If tile fits, add it and recalculate cost
             s.add_tile(tile_length, tile_type, position, tile_orientation);
             s.recalculate_cost();
-            s.compare_best(best_solution);
+            compare_with_best(s);
 
             tile_placed = true;
             s.delib_empty_in_row = 0;
@@ -170,15 +161,12 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
             // Tile cannot be placed -- this branch ends
             return;
         }
-
-    /*} else if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
-        return;*/
     } else {
-        s.deliberately_empty_count ++;
+        s.deliberately_empty_count++;
         s.delib_empty_in_row++;
         dfc_increased = true;
         if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
-            s.deliberately_empty_count --;
+            s.deliberately_empty_count--;
             s.delib_empty_in_row--;
             return;
         }
@@ -213,7 +201,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
         }
         if (dfc_increased) {
             s.deliberately_empty_count--;
-            s.delib_empty_in_row --;
+            s.delib_empty_in_row--;
         }
         return;
     }
@@ -232,8 +220,8 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
     }
 
     if (dfc_increased) {
-        s.deliberately_empty_count --;
-        s.delib_empty_in_row --;
+        s.deliberately_empty_count--;
+        s.delib_empty_in_row--;
     }
 }
 
@@ -242,6 +230,10 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
 void solver::initiate_search(solution &s, coords initial_position) {
     s.recalculate_cost();
     s.compare_best(best_solution);
+
+    if(initial_position.x == -1){
+        return;
+    }
 
     //cout << "Phase 1/5" << endl;
     find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
@@ -253,4 +245,13 @@ void solver::initiate_search(solution &s, coords initial_position) {
     find_cover(s, initial_position, type2_len, VERTICAL, 2);
     //cout << "Phase 5/5" << endl;
     find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
+}
+
+void solver::compare_with_best(solution &sol) {
+    if (sol.cost > best_solution.cost) {
+        best_solution.cost = sol.cost;
+        best_solution.current_state = sol.current_state;
+        best_solution.type1_count = sol.type1_count;
+        best_solution.type2_count = sol.type2_count;
+    }
 }

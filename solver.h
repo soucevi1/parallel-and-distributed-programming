@@ -45,6 +45,8 @@ public:
 
     void initiate_search(solution & s, coords initial_position);
 
+    void compare_with_best(solution &sol);
+
 };
 
 

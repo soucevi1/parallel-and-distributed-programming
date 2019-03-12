@@ -148,6 +148,8 @@ solution::solution() {
     type2_cost = 0;
     empty_cost = 0;
     empty_count = 0;
+    delib_empty_in_row = 0;
+    deliberately_empty_count = 0;
 }
 
 void solution::print_solution() {
