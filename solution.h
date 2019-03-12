@@ -32,16 +32,6 @@ public:
 
     int delib_empty_in_row;
 
-    struct best{
-        pole best_map;
-        int best_cost;
-        int type1_cnt;
-        int type2_cnt;
-        //void print_best();
-    };
-
-    best best_solution;
-
     solution();
     solution(pole map, int t1_count, int t2_count, int free_count, int t1_cost, int t2_cost, int free_cost,
                  int cost, int t1_len, int t2_len);
@@ -62,11 +52,9 @@ public:
 
     void print_solution();
 
-    void print_best();
+    void compare_best(solution &best_sol);
 
-    void compare_best();
-
-    bool could_be_better_than_best(coords &position);
+    bool could_be_better_than_best(coords &position, solution &best_sol);
 
     bool can_fit_tile_behind(coords &position);
     bool can_fit_tile_above(coords &position);

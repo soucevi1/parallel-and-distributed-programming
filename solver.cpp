@@ -21,7 +21,7 @@ solver::solver(pole p, int i1, int i2, int c1, int c2, int cn) : map(p),
 void solver::generate_initial_solutions(int required_levels) {
     queue<initial_solution> q;
 
-    int free_count = map.x_dim * map.y_dim - map.forbidden_count;
+    int free_count = (int)(map.x_dim * map.y_dim - map.forbidden_count);
 
     solution s(map, 0, 0, free_count, type1_cost, type2_cost, free_cost, 0, type1_len, type2_len);
     s.recalculate_cost();
@@ -34,6 +34,8 @@ void solver::generate_initial_solutions(int required_levels) {
     initial_solution is;
     is.s = s;
     is.pos = current_position;
+
+    best_solution = s;
 
     q.push(is);
 
@@ -64,6 +66,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 }
                 tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
+                tmp1.s.compare_best(best_solution);
                 q_2.push(tmp1);
             }
 
@@ -77,6 +80,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 }
                 tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
+                tmp1.s.compare_best(best_solution);
                 q_2.push(tmp1);
             }
 
@@ -90,6 +94,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 }
                 tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
+                tmp1.s.compare_best(best_solution);
                 q_2.push(tmp1);
             }
 
@@ -103,6 +108,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 }
                 tmp1.pos = next_position;
                 tmp1.s.recalculate_cost();
+                tmp1.s.compare_best(best_solution);
                 q_2.push(tmp1);
             }
 
@@ -112,6 +118,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 break;
             }
             tmp.pos = next_position;
+            tmp.s.compare_best(best_solution);
             q_2.push(tmp);
         }
 
@@ -122,11 +129,11 @@ void solver::generate_initial_solutions(int required_levels) {
 }
 
 void solver::solve() {
-    int required_number_of_levels = 1;
+    int required_number_of_levels = 5;
 
     generate_initial_solutions(required_number_of_levels);
 
-    vector<solution> solutions;
+    //vector<solution> solutions;
 
     // Every worker gets one subproblem to solve
     for (int i = 0; i < initial_solutions.size(); i++) {
@@ -135,17 +142,11 @@ void solver::solve() {
 
         initiate_search(s.s, s.pos);
 
-        solutions.push_back(s.s);
+      //  solutions.push_back(s.s);
     }
 
-    solution best = solutions[0];
-    for (int i = 1; i < solutions.size(); i++) {
-        if (solutions[i].best_solution.best_cost > best.best_solution.best_cost) {
-            best = solutions[i];
-        }
-    }
     cout << "The BEST solution is:" << endl;
-    best.print_best();
+    best_solution.print_solution();
 }
 
 void solver::find_cover(solution &s, coords &position, int tile_length, int tile_orientation, int tile_type) {
@@ -160,7 +161,8 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
             // If tile fits, add it and recalculate cost
             s.add_tile(tile_length, tile_type, position, tile_orientation);
             s.recalculate_cost();
-            s.compare_best();
+            s.compare_best(best_solution);
+
             tile_placed = true;
             s.delib_empty_in_row = 0;
 
@@ -204,7 +206,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
         s.delib_empty_in_row = 0;
     }
 
-    if (!s.could_be_better_than_best(next_position)) {
+    if (!s.could_be_better_than_best(next_position, best_solution)) {
         if (tile_placed) {
             s.remove_tile(tile_length, tile_type, position, tile_orientation);
             s.recalculate_cost();
@@ -239,7 +241,7 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
 // Only one worker executes this code sequentially
 void solver::initiate_search(solution &s, coords initial_position) {
     s.recalculate_cost();
-    s.compare_best();
+    s.compare_best(best_solution);
 
     //cout << "Phase 1/5" << endl;
     find_cover(s, initial_position, type1_len, HORIZONTAL, 1);

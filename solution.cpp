@@ -20,10 +20,6 @@ solution::solution(pole map, int t1_count, int t2_count, int free_count, int t1_
                                                        type1_length(t1_len),
                                                        type2_length(t2_len),
                                                        delib_empty_in_row(0) {
-    best_solution.best_map = current_state;
-    best_solution.best_cost = INT_MIN;
-    best_solution.type1_cnt = 0;
-    best_solution.type2_cnt = 0;
     shortest_tile_length = type1_length > type2_length ? type2_length : type1_length;
 };
 
@@ -157,24 +153,38 @@ solution::solution() {
 void solution::print_solution() {
     print_map();
     cout << "Cost: " << cost << endl;
-    cout << "# T1: " << type1_count << ", # T2: " << type2_count << endl;
-    cout << "# Free: " << empty_count << endl;
+    cout << "Length " << type1_length << ": " << type1_count << endl;
+    cout << "Length " << type2_length << ": " << type2_count << endl;
+
+    vector<coords> uncovered;
+    int uncovered_count = 0;
+
+    for(int i=0; i<current_state.x_dim; i++){
+        for(int j=0; j<current_state.y_dim; j++){
+            if(current_state.map[i][j] == EMPTY_POS){
+                uncovered_count ++;
+                uncovered.emplace_back(coords(i,j));
+            }
+        }
+    }
+
+    cout << "Uncovered: " << uncovered_count << endl;
+    for (auto &i : uncovered) {
+        cout << "    [" << i.x << ", " << i.y << "]" << endl;
+    }
     cout << endl;
 }
 
-void solution::compare_best() {
-    if (cost > best_solution.best_cost) {
-        best_solution.best_cost = cost;
-        best_solution.best_map = current_state;
-        best_solution.type1_cnt = type1_count;
-        best_solution.type2_cnt = type2_count;
-
-        //best_solution.print_best();
-        //cout << endl;
+void solution::compare_best(solution &best_sol) {
+    if (cost > best_sol.cost) {
+        best_sol.cost = cost;
+        best_sol.current_state = current_state;
+        best_sol.type1_count = type1_count;
+        best_sol.type2_count = type2_count;
     }
 }
 
-bool solution::could_be_better_than_best(coords &position) {
+bool solution::could_be_better_than_best(coords &position, solution &best_sol) {
 
     // Hypothetical reachable cost
     int hypothetical_cost = cost + eval(empty_count);
@@ -186,7 +196,7 @@ bool solution::could_be_better_than_best(coords &position) {
     // that were left empty on purpose
     hypothetical_cost += empty_cost * deliberately_empty_count;
 
-    return hypothetical_cost > best_solution.best_cost;
+    return hypothetical_cost > best_sol.cost;
 }
 
 int solution::eval(int number) {
@@ -226,27 +236,3 @@ bool solution::can_fit_tile_above(coords &position) {
     return true;
 }
 
-void solution::print_best() {
-    best_solution.best_map.print();
-    cout << "Cost: " << best_solution.best_cost << endl;
-    cout << "Length " << type1_length << ": " << best_solution.type1_cnt << endl;
-    cout << "Length " << type2_length << ": " << best_solution.type2_cnt << endl;
-
-    vector<coords> uncovered;
-    int uncovered_count = 0;
-
-    for(int i=0; i<best_solution.best_map.x_dim; i++){
-        for(int j=0; j<best_solution.best_map.y_dim; j++){
-            if(best_solution.best_map.map[i][j] == EMPTY_POS){
-                uncovered_count ++;
-                uncovered.emplace_back(coords(i,j));
-            }
-        }
-    }
-
-    cout << "Uncovered: " << uncovered_count << endl;
-    for (auto &i : uncovered) {
-        cout << "[" << i.x << ", " << i.y << "]" << endl;
-    }
-    cout << endl;
-}

@@ -33,6 +33,8 @@ public:
         coords pos;
     };
 
+    solution best_solution;
+
     void generate_initial_solutions(int required_levels);
 
     queue<initial_solution> initial_solutions;
