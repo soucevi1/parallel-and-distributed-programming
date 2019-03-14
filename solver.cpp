@@ -127,6 +127,9 @@ void solver::generate_initial_solutions(int required_levels) {
 }
 
 void solver::solve() {
+
+    // TODO - predelat Queue na vector -- nutno mit moznost iterovat
+
     int required_number_of_levels = 1;
 
     generate_initial_solutions(required_number_of_levels);
