@@ -27,7 +27,7 @@ void solution::recalculate_cost() {
     cost = type1_cost * type1_count + type2_cost * type2_count + empty_count * empty_cost;
 }
 
-bool solution::check_if_tile_fits(int length, coords &pos, int direction) {
+bool solution::check_if_tile_fits(int length, const coords &pos, int direction) {
 
     if (direction == VERTICAL) {
 
@@ -57,7 +57,7 @@ bool solution::check_if_tile_fits(int length, coords &pos, int direction) {
     return true;
 }
 
-void solution::add_tile(int length, int type, coords pos, int direction) {
+void solution::add_tile(int length, int type, const coords pos, int direction) {
 
     int id = current_state.y_dim * pos.x + pos.y;
     if (direction == VERTICAL) {
@@ -118,7 +118,7 @@ coords solution::next_free_position(coords current) {
     return c;
 }
 
-void solution::remove_tile(int length, int type, coords &pos, int direction) {
+void solution::remove_tile(int length, int type, const coords &pos, int direction) {
     if (direction == VERTICAL) {
 
         for (int i = 0; i < length; i++) {
@@ -221,11 +221,11 @@ int solution::eval(int number) {
     return max;
 }
 
-bool solution::can_fit_tile_behind(coords &position) {
+bool solution::can_fit_tile_behind(const coords &position) {
     return shortest_tile_length <= delib_empty_in_row;
 }
 
-bool solution::can_fit_tile_above(coords &position) {
+bool solution::can_fit_tile_above(const coords &position) {
     if ( (position.x + 1) - shortest_tile_length < 0) {
         return false;
     }

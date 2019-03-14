@@ -38,11 +38,11 @@ public:
 
     void recalculate_cost();
 
-    void add_tile(int length, int type, coords pos, int direction);
+    void add_tile(int length, int type, const coords pos, int direction);
 
-    void remove_tile(int length, int type, coords &pos, int direction);
+    void remove_tile(int length, int type, const coords &pos, int direction);
 
-    bool check_if_tile_fits(int length, coords &pos, int direction);
+    bool check_if_tile_fits(int length, const coords &pos, int direction);
 
     coords next_position(coords current);
 
@@ -56,8 +56,8 @@ public:
 
     bool could_be_better_than_best(coords &position, solution &best_sol);
 
-    bool can_fit_tile_behind(coords &position);
-    bool can_fit_tile_above(coords &position);
+    bool can_fit_tile_behind(const coords &position);
+    bool can_fit_tile_above(const coords &position);
 
     int eval(int number);
 };

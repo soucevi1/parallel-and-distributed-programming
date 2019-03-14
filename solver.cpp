@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <omp.h>
 #include "solver.h"
 #include "pole.h"
 #include "solution.h"
@@ -53,7 +54,7 @@ void solver::generate_initial_solutions(int required_levels) {
             q.pop();
 
             current_position = tmp.position;
-            if(current_position.x == -1){
+            if (current_position.x == -1) {
                 continue;
             }
 
@@ -115,7 +116,8 @@ void solver::generate_initial_solutions(int required_levels) {
             tmp1.starting_solution.deliberately_empty_count++;
             tmp1.starting_solution.recalculate_cost();
             compare_with_best(tmp1.starting_solution);
-            if(! tmp1.starting_solution.can_fit_tile_behind(current_position) && ! tmp1.starting_solution.can_fit_tile_above(current_position)){
+            if (!tmp1.starting_solution.can_fit_tile_behind(current_position) &&
+                !tmp1.starting_solution.can_fit_tile_above(current_position)) {
                 q_2.push(tmp1);
             }
         }
@@ -135,20 +137,25 @@ void solver::solve() {
     generate_initial_solutions(required_number_of_levels);
 
     // Every worker gets one subproblem to solve
-    int q_size = (int)initial_solutions.size();
+    int q_size = (int) initial_solutions.size();
 
     for (int i = 0; i < q_size; i++) {
         initial_solution s = initial_solutions.front();
         initial_solutions.pop();
 
-        initiate_search(s.starting_solution, s.position);
+#pragma omp parallel default(shared) shared(s)
+        {
+#pragma omp single
+            //cout << "Threads: " <<omp_get_num_threads() << endl;
+            initiate_search(s.starting_solution, s.position);
+        };
     }
 
-    cout << "The BEST starting_solution is:" << endl;
+    cout << "The BEST solution is:" << endl;
     best_solution.print_solution();
 }
 
-void solver::find_cover(solution &s, coords &position, int tile_length, int tile_orientation, int tile_type) {
+void solver::find_cover(solution s, const coords &position, int tile_length, int tile_orientation, int tile_type) {
 
     bool tile_placed = false;
     bool dfc_increased = false;
@@ -214,13 +221,18 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
         return;
     }
 
-    find_cover(s, next_position, type1_len, HORIZONTAL, 1);
-    find_cover(s, next_position, type2_len, HORIZONTAL, 2);
+#pragma omp task
+        find_cover(s, next_position, type1_len, HORIZONTAL, 1);
+#pragma omp task
+        find_cover(s, next_position, type2_len, HORIZONTAL, 2);
+#pragma omp task
+        find_cover(s, next_position, type1_len, VERTICAL, 1);
+#pragma omp task
+        find_cover(s, next_position, type2_len, VERTICAL, 2);
+#pragma omp task
+        find_cover(s, next_position, 0, LEAVE_EMPTY, 0);
+//#pragma omp taskwait
 
-    find_cover(s, next_position, type1_len, VERTICAL, 1);
-    find_cover(s, next_position, type2_len, VERTICAL, 2);
-
-    find_cover(s, next_position, 0, LEAVE_EMPTY, 0);
 
     if (tile_placed) {
         s.remove_tile(tile_length, tile_type, position, tile_orientation);
@@ -235,34 +247,40 @@ void solver::find_cover(solution &s, coords &position, int tile_length, int tile
 
 
 // Only one worker executes this code sequentially
-void solver::initiate_search(solution &s, coords initial_position) {
+void solver::initiate_search(solution s, coords initial_position) {
     s.recalculate_cost();
     s.compare_best(best_solution);
 
-    if(initial_position.x == -1){
+    if (initial_position.x == -1) {
         return;
     }
 
-    //cout << "Phase 1/5" << endl;
-    find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
-    //cout << "Phase 2/5" << endl;
-    find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
-    //cout << "Phase 3/5" << endl;
-    find_cover(s, initial_position, type1_len, VERTICAL, 1);
-    //cout << "Phase 4/5" << endl;
-    find_cover(s, initial_position, type2_len, VERTICAL, 2);
-    //cout << "Phase 5/5" << endl;
-    find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
+#pragma omp task
+        find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
+#pragma omp task
+        find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
+#pragma omp task
+        find_cover(s, initial_position, type1_len, VERTICAL, 1);
+#pragma omp task
+        find_cover(s, initial_position, type2_len, VERTICAL, 2);
+#pragma omp task
+        find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
+
+//#pragma omp taskwait
 }
 
 void solver::compare_with_best(solution &sol) {
     if (sol.cost > best_solution.cost) {
-        best_solution.cost = sol.cost;
-        best_solution.current_state = sol.current_state;
-        best_solution.type1_count = sol.type1_count;
-        best_solution.type2_count = sol.type2_count;
-
-       // best_solution.print_solution();
-       // cout << "=====================================" <<endl;
+#pragma omp critical
+        {
+            if (sol.cost > best_solution.cost) {
+                best_solution.cost = sol.cost;
+                best_solution.current_state = sol.current_state;
+                best_solution.type1_count = sol.type1_count;
+                best_solution.type2_count = sol.type2_count;
+            }
+        }
+        // best_solution.print_solution();
+        // cout << "=====================================" <<endl;
     }
 }

@@ -9,6 +9,7 @@
 #include "solution.h"
 #include "constants.h"
 #include "solver.h"
+#include <omp.h>
 
 using namespace std;
 
@@ -120,8 +121,6 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    //cout << "Filename is: " << filename << endl;
-
     ifstream f;
     f.open(filename, ios_base::in);
 
@@ -149,14 +148,14 @@ int main(int argc, char **argv) {
     solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
 
     // MAIN FUNCTION CALL, measuring the time
-    clock_t begin = clock();
+    //clock_t begin = clock();
 
     s.solve();
 
-    clock_t end = clock();
-    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    //clock_t end = clock();
+    //double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 
-    cout << "Finished in " << elapsed_secs << " seconds" << endl;
+    //cout << "Finished in " << elapsed_secs << " seconds" << endl;
 
     return 0;
 }
