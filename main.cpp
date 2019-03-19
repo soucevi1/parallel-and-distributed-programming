@@ -149,13 +149,15 @@ int main(int argc, char **argv) {
 
     // MAIN FUNCTION CALL, measuring the time
     //clock_t begin = clock();
+    double begin = omp_get_wtime();
 
     s.solve();
 
+    double elapsed_secs = omp_get_wtime() - begin;
     //clock_t end = clock();
     //double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 
-    //cout << "Finished in " << elapsed_secs << " seconds" << endl;
+    cout << "Finished in " << elapsed_secs << " seconds" << endl;
 
     return 0;
 }

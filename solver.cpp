@@ -5,6 +5,7 @@
 #include <iostream>
 #include <omp.h>
 #include "solver.h"
+#include "constants.h"
 #include "pole.h"
 #include "solution.h"
 #include "constants.h"
@@ -143,7 +144,7 @@ void solver::solve() {
         initial_solution s = initial_solutions.front();
         initial_solutions.pop();
 
-#pragma omp parallel default(shared) shared(s)
+#pragma omp parallel default(shared)
         {
 #pragma omp single
             //cout << "Threads: " <<omp_get_num_threads() << endl;
@@ -221,15 +222,19 @@ void solver::find_cover(solution s, const coords &position, int tile_length, int
         return;
     }
 
-#pragma omp task
+    int id =  s.current_state.y_dim * position.x + position.y;
+
+    bool task_condition = id < TASK_LEVEL_THRESHOLD;
+
+#pragma omp task if (task_condition)
         find_cover(s, next_position, type1_len, HORIZONTAL, 1);
-#pragma omp task
+#pragma omp task if (task_condition)
         find_cover(s, next_position, type2_len, HORIZONTAL, 2);
-#pragma omp task
+#pragma omp task if (task_condition)
         find_cover(s, next_position, type1_len, VERTICAL, 1);
-#pragma omp task
+#pragma omp task if (task_condition)
         find_cover(s, next_position, type2_len, VERTICAL, 2);
-#pragma omp task
+//#pragma omp task if (task_condition)
         find_cover(s, next_position, 0, LEAVE_EMPTY, 0);
 //#pragma omp taskwait
 
