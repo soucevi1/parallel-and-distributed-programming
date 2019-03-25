@@ -158,9 +158,6 @@ void solver::solve() {
 
 void solver::find_cover(solution s, const coords &position, int tile_length, int tile_orientation, int tile_type) {
 
-    bool tile_placed = false;
-    bool dfc_increased = false;
-
     // If supposed to place a tile
     if (tile_orientation != LEAVE_EMPTY) {
 
@@ -170,7 +167,6 @@ void solver::find_cover(solution s, const coords &position, int tile_length, int
             s.recalculate_cost();
             compare_with_best(s);
 
-            tile_placed = true;
             s.delib_empty_in_row = 0;
 
         } else {
@@ -180,10 +176,7 @@ void solver::find_cover(solution s, const coords &position, int tile_length, int
     } else {
         s.deliberately_empty_count++;
         s.delib_empty_in_row++;
-        dfc_increased = true;
         if (s.can_fit_tile_behind(position) || s.can_fit_tile_above(position)) {
-            s.deliberately_empty_count--;
-            s.delib_empty_in_row--;
             return;
         }
     }
@@ -192,15 +185,6 @@ void solver::find_cover(solution s, const coords &position, int tile_length, int
 
     // The search reached the end
     if (next_position.x == -1) {
-        // If tile was placed previously, remove it
-        if (tile_placed) {
-            s.remove_tile(tile_length, tile_type, position, tile_orientation);
-            s.recalculate_cost();
-        }
-        if (dfc_increased) {
-            s.deliberately_empty_count--;
-            s.delib_empty_in_row--;
-        }
         return;
     }
 
@@ -211,20 +195,12 @@ void solver::find_cover(solution s, const coords &position, int tile_length, int
     }
 
     if (!s.could_be_better_than_best(next_position, best_solution)) {
-        if (tile_placed) {
-            s.remove_tile(tile_length, tile_type, position, tile_orientation);
-            s.recalculate_cost();
-        }
-        if (dfc_increased) {
-            s.deliberately_empty_count--;
-            s.delib_empty_in_row--;
-        }
         return;
     }
 
     int id =  s.current_state.y_dim * position.x + position.y;
 
-    bool task_condition = id < TASK_LEVEL_THRESHOLD;
+    bool task_condition = (id < TASK_LEVEL_THRESHOLD);
 
 #pragma omp task if (task_condition)
         find_cover(s, next_position, type1_len, HORIZONTAL, 1);
@@ -238,16 +214,6 @@ void solver::find_cover(solution s, const coords &position, int tile_length, int
         find_cover(s, next_position, 0, LEAVE_EMPTY, 0);
 //#pragma omp taskwait
 
-
-    if (tile_placed) {
-        s.remove_tile(tile_length, tile_type, position, tile_orientation);
-        s.recalculate_cost();
-    }
-
-    if (dfc_increased) {
-        s.deliberately_empty_count--;
-        s.delib_empty_in_row--;
-    }
 }
 
 
