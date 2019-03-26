@@ -13,7 +13,7 @@
 
 #define LEAVE_EMPTY 3
 
-#define TASK_LEVEL_THRESHOLD 3
+#define TASK_LEVEL_THRESHOLD 5
 
 
 #endif //MI_PDP_CONSTANTS_H

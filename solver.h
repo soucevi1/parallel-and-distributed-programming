@@ -41,7 +41,7 @@ public:
 
     void solve();
 
-    void find_cover(solution s, const coords &position, int tile_length, int tile_orientation, int tile_type);
+    void find_cover(solution &s, const coords &position, int tile_length, int tile_orientation, int tile_type);
 
     void initiate_search(solution s, coords initial_position);
 
