@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <ctime>
+#include <omp.h>
 
 #include "pole.h"
 #include "solution.h"
@@ -149,12 +150,11 @@ int main(int argc, char **argv) {
     solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
 
     // MAIN FUNCTION CALL, measuring the time
-    clock_t begin = clock();
+    double begin = omp_get_wtime();
 
     s.solve();
 
-    clock_t end = clock();
-    double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+    double elapsed_secs = omp_get_wtime() - begin;
 
     cout << "Finished in " << elapsed_secs << " seconds" << endl;
 

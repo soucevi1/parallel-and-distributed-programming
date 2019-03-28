@@ -37,7 +37,7 @@ public:
 
     void generate_initial_solutions(int required_levels);
 
-    queue<initial_solution> initial_solutions;
+    deque<initial_solution> initial_solutions;
 
     void solve();
 

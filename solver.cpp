@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <omp.h>
 #include "solver.h"
 #include "pole.h"
 #include "solution.h"
@@ -19,7 +20,7 @@ solver::solver(pole p, int i1, int i2, int c1, int c2, int cn) : map(p),
 
 
 void solver::generate_initial_solutions(int required_levels) {
-    queue<initial_solution> q;
+    deque<initial_solution> q;
 
     int free_count = (int) (map.x_dim * map.y_dim - map.forbidden_count);
 
@@ -37,23 +38,30 @@ void solver::generate_initial_solutions(int required_levels) {
 
     best_solution = sol;
 
-    q.push(is);
+    q.push_back(is);
+
+    int place_count = is.starting_solution.current_state.x_dim * is.starting_solution.current_state.y_dim;
+    cout << "Places: " << place_count << endl;
 
     for (int i = 1; i < required_levels; i++) {
 
         // For each tree level,
         // generate subproblems from the whole queue
 
-        queue<initial_solution> q_2;
+        deque<initial_solution> q_2;
 
         int queue_size = (int) q.size();
 
+        if(queue_size > place_count * 10){
+            break;
+        }
+
         for (int j = 0; j < queue_size; j++) {
             initial_solution tmp = q.front();
-            q.pop();
+            q.pop_front();
 
             current_position = tmp.position;
-            if(current_position.x == -1){
+            if (current_position.x == -1) {
                 continue;
             }
 
@@ -68,7 +76,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 next_position = tmp1.starting_solution.next_free_position(current_position);
                 tmp1.position = next_position;
                 tmp1.starting_solution.delib_empty_in_row = 0;
-                q_2.push(tmp1);
+                q_2.push_back(tmp1);
             }
 
             // TYPE 2 horizontal
@@ -80,7 +88,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 next_position = tmp1.starting_solution.next_free_position(current_position);
                 tmp1.position = next_position;
                 tmp1.starting_solution.delib_empty_in_row = 0;
-                q_2.push(tmp1);
+                q_2.push_back(tmp1);
             }
 
             // TYPE 1 vertical
@@ -92,7 +100,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 next_position = tmp1.starting_solution.next_free_position(current_position);
                 tmp1.position = next_position;
                 tmp1.starting_solution.delib_empty_in_row = 0;
-                q_2.push(tmp1);
+                q_2.push_back(tmp1);
             }
 
             // TYPE 2 vertical
@@ -104,7 +112,7 @@ void solver::generate_initial_solutions(int required_levels) {
                 next_position = tmp1.starting_solution.next_free_position(current_position);
                 tmp1.position = next_position;
                 tmp1.starting_solution.delib_empty_in_row = 0;
-                q_2.push(tmp1);
+                q_2.push_back(tmp1);
             }
 
             // LEAVE EMPTY
@@ -115,8 +123,9 @@ void solver::generate_initial_solutions(int required_levels) {
             tmp1.starting_solution.deliberately_empty_count++;
             tmp1.starting_solution.recalculate_cost();
             compare_with_best(tmp1.starting_solution);
-            if(! tmp1.starting_solution.can_fit_tile_behind(current_position) && ! tmp1.starting_solution.can_fit_tile_above(current_position)){
-                q_2.push(tmp1);
+            if (!tmp1.starting_solution.can_fit_tile_behind(current_position) &&
+                !tmp1.starting_solution.can_fit_tile_above(current_position)) {
+                q_2.push_back(tmp1);
             }
         }
 
@@ -128,20 +137,17 @@ void solver::generate_initial_solutions(int required_levels) {
 
 void solver::solve() {
 
-    // TODO - predelat Queue na vector -- nutno mit moznost iterovat
-
-    int required_number_of_levels = 1;
+    int required_number_of_levels = 9;
 
     generate_initial_solutions(required_number_of_levels);
 
     // Every worker gets one subproblem to solve
-    int q_size = (int)initial_solutions.size();
+    int q_size = (int) initial_solutions.size();
+    cout << "Subproblems generated: " << q_size << endl;
 
+#pragma omp parallel for default(shared) schedule(guided)
     for (int i = 0; i < q_size; i++) {
-        initial_solution s = initial_solutions.front();
-        initial_solutions.pop();
-
-        initiate_search(s.starting_solution, s.position);
+        initiate_search(initial_solutions[i].starting_solution, initial_solutions[i].position);
     }
 
     cout << "The BEST starting_solution is:" << endl;
@@ -239,7 +245,7 @@ void solver::initiate_search(solution &s, coords initial_position) {
     s.recalculate_cost();
     s.compare_best(best_solution);
 
-    if(initial_position.x == -1){
+    if (initial_position.x == -1) {
         return;
     }
 
@@ -257,12 +263,17 @@ void solver::initiate_search(solution &s, coords initial_position) {
 
 void solver::compare_with_best(solution &sol) {
     if (sol.cost > best_solution.cost) {
-        best_solution.cost = sol.cost;
-        best_solution.current_state = sol.current_state;
-        best_solution.type1_count = sol.type1_count;
-        best_solution.type2_count = sol.type2_count;
+#pragma omp critical
+        {
+            if (sol.cost > best_solution.cost) {
+                best_solution.cost = sol.cost;
+                best_solution.current_state = sol.current_state;
+                best_solution.type1_count = sol.type1_count;
+                best_solution.type2_count = sol.type2_count;
 
-       // best_solution.print_solution();
-       // cout << "=====================================" <<endl;
+                // best_solution.print_solution();
+                // cout << "=====================================" <<endl;
+            }
+        };
     }
 }
