@@ -119,3 +119,16 @@ pole::pole() {
     forbidden_count = 0;
     forbidden = vector<coords>{};
 }
+
+pole::pole(int x, int y, unsigned long forb) {
+    // Constructor used in deserialization
+    x_dim = x;
+    y_dim = y;
+    forbidden_count = forb;
+
+    map = new int *[x];
+
+    for (int i = 0; i < x; i++) {
+        map[i] = new int[y];
+    }
+}

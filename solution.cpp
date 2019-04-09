@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "coords.h"
 #include <limits.h>
+#include <sstream>
 
 solution::solution(pole map, int t1_count, int t2_count, int free_count, int t1_cost, int t2_cost, int free_cost,
                    int cost, int t1_len, int t2_len) : current_state(map),
@@ -236,5 +237,61 @@ bool solution::can_fit_tile_above(coords &position) {
         }
     }
     return true;
+}
+
+string solution::serialize() {
+    ostringstream os;
+
+    os << cost << " ";
+    os << type1_length << " " << type1_count << " " << type1_cost << " ";
+    os << type2_length << " " << type2_count << " " << type2_cost << " ";
+    os << empty_count << " " << empty_cost << " " << deliberately_empty_count << " " << delib_empty_in_row << " ";
+
+    os << current_state.x_dim << " " << current_state.y_dim << " " << current_state.forbidden_count << " ";
+
+    for(int i=0; i<current_state.x_dim; i++){
+        for(int j=0; j<current_state.y_dim; j++){
+            os << current_state.map[i][j] << " ";
+        }
+    }
+
+    return os.str();
+}
+
+solution::solution(const string& serialized) {
+    // Deserialize string to a new solution
+    istringstream is(serialized);
+
+
+    is >> cost;
+
+    is >> type1_length;
+    is >> type1_count;
+    is >> type1_cost;
+    is >> type2_length;
+    is >> type2_count;
+    is >> type2_cost;
+
+    is >> empty_count;
+    is >> empty_cost;
+    is >> deliberately_empty_count;
+    is >> delib_empty_in_row;
+
+    int x, y, fc;
+    is >> x;
+    is >> y;
+    is >> fc;
+
+    current_state = pole(x, y, fc);
+
+    for(int i=0; i<current_state.x_dim; i++){
+        for(int j=0; j<current_state.y_dim; j++){
+            is >> current_state.map[i][j];
+            if(current_state.map[i][j] == FORB_POS){
+                current_state.forbidden.emplace_back(i,j);
+            }
+        }
+    }
+
 }
 

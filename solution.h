@@ -35,6 +35,7 @@ public:
     solution();
     solution(pole map, int t1_count, int t2_count, int free_count, int t1_cost, int t2_cost, int free_cost,
                  int cost, int t1_len, int t2_len);
+    solution(const string& serialized);
 
     void recalculate_cost();
 
@@ -60,6 +61,8 @@ public:
     bool can_fit_tile_above(coords &position);
 
     int eval(int number);
+
+    string serialize();
 };
 
 

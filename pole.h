@@ -24,6 +24,7 @@ public:
     int **map;
 
     pole(int x, int y, unsigned long forb, vector<coords> f);
+    pole(int x, int y, unsigned long forb);
     pole(const pole & p);
     pole();
     ~pole();

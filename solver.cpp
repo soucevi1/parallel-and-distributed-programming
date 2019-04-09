@@ -137,7 +137,7 @@ void solver::generate_initial_solutions(int required_levels) {
 
 void solver::solve() {
 
-    int required_number_of_levels = 9;
+    int required_number_of_levels = 1;
 
     generate_initial_solutions(required_number_of_levels);
 
@@ -145,7 +145,6 @@ void solver::solve() {
     int q_size = (int) initial_solutions.size();
     cout << "Subproblems generated: " << q_size << endl;
 
-#pragma omp parallel for default(shared) schedule(guided)
     for (int i = 0; i < q_size; i++) {
         initiate_search(initial_solutions[i].starting_solution, initial_solutions[i].position);
     }
