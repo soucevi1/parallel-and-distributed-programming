@@ -192,30 +192,29 @@ int main(int argc, char **argv) {
             MPI_Send(&count_problems_to_send[i], 1, MPI_INT, i, COUNT_TAG, MPI_COMM_WORLD);
         }
 
-        for(int i=1; i<proc_count; i++){
-            MPI_Send(&count_problems_to_send[i], 1, MPI_INT, i, STOP_TAG, MPI_COMM_WORLD);
+
+        for(int i=0; i<proc_count; i++){
+            for(int j=0; j<count_problems_to_send[i]; j++){
+
+                solution sol = s.initial_solutions.front().starting_solution;
+                coords pos = s.initial_solutions.front().position;
+                s.initial_solutions.pop_front();
+
+                comm_info c = comm_info(sol, pos, s.best_solution);
+
+                string cs = c.serialize();
+
+                MPI_Send(cs.c_str(), cs.length(), MPI_CHAR, i, WORK_TAG, MPI_COMM_WORLD);
+
+              /*  if(j == count_problems_to_send[i]-1){
+                    cout << "============== " << i << " ==============" << endl;
+                    sol.print_solution();
+                    cout << pos << endl;
+                    c.best.print_solution();
+                    cout << "============== /" << i << " ==============" << endl;
+                }*/
+            }
         }
-
-
-
-        MPI_Finalize();
-        return 0;
-
-
-        int proc_num = 1;
-        for (int i = 0; i < q_size; i++) {
-            solution sol = s.initial_solutions[i].starting_solution;
-            coords position = s.initial_solutions[i].position;
-            solution best = s.best_solution;
-
-            comm_info c = comm_info(sol, position, best);
-            string serialized = c.serialize();
-
-            MPI_Send(serialized.c_str(), serialized.length(), MPI_CHAR, proc_num, WORK_TAG, MPI_COMM_WORLD);
-
-            proc_num = ((proc_num + 1) % proc_count) + 1;
-        }
-
 
         /*
          *  Dokud jsi nedostal odpoved od vsech, prijimej zpravy
@@ -236,39 +235,53 @@ int main(int argc, char **argv) {
          *
          *  Koukni, jestli je k dispozici zprava
          *  pokud ano:
-         *      pokud je to NEW_BEST_TAG:
-         *          porovnej se svym nejlepsim, pripadne nahrad
          *      pokud je to STOP_TAG:
          *          breakni
+         *      pokud COUNT_TAG:
+         *          nacti si pocet
          *      jinak (WORK_TAG):
-         *          vyrob si solver
-         *          nageneruj reseni pro paralelismus
-         *          vyres
-         *          odesli nejlepsi reseni masterovi
+         *          prijmi podproblem
+         *          pokud uz mas vsechny, breakni
          *
          */
 
+        deque<comm_info> received_work;
+        int solution_count = 0;
+        int solutions_received = 0;
+
         while(true){
-            int flag = 0;
             MPI_Status stat;
-            //MPI_Iprobe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &flag, &stat);
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &stat);
 
             bool finish = false;
             switch(stat.MPI_TAG){
+
                 case STOP_TAG:
                     finish = true;
                     cout << my_rank << ": STOP" << endl;
                     break;
+
                 case NEW_BEST_TAG:
                     /* Assign new best */
                     break;
+
                 case COUNT_TAG:
-                    int m;
-                    MPI_Recv(&m, 1, MPI_INT, MPI_ANY_SOURCE, COUNT_TAG, MPI_COMM_WORLD, &stat);
-                    cout << my_rank << ": problems: " << m << endl;
+                    MPI_Recv(&solution_count, 1, MPI_INT, MPI_ANY_SOURCE, COUNT_TAG, MPI_COMM_WORLD, &stat);
+                    cout << my_rank << ": problems: " << solution_count << endl;
                     break;
+
                 case WORK_TAG:
+                    char *m;
+                    int recvd;
+                    MPI_Get_count(&stat, MPI_CHAR, &recvd);
+                    m = new char[recvd];
+                    MPI_Recv(m, recvd, MPI_CHAR, stat.MPI_SOURCE, stat.MPI_TAG, MPI_COMM_WORLD, &stat);
+                    comm_info recvd_c = comm_info(string(m));
+                    received_work.push_back(recvd_c);
+                    solutions_received ++;
+                    if(solutions_received == solution_count){
+                        finish = true;
+                    }
                     break;
             }
 
@@ -276,6 +289,9 @@ int main(int argc, char **argv) {
                 break;
             }
         }
+
+        // Pod timto komentem zacit vypocty
+        // Ve vypoctech se obcas kouknout, jestli nahodou nemam zpravu se zlepsenim
 
     }
 
