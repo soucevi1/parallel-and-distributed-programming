@@ -262,7 +262,6 @@ solution::solution(const string& serialized) {
     // Deserialize string to a new solution
     istringstream is(serialized);
 
-
     is >> cost;
 
     is >> type1_length;
