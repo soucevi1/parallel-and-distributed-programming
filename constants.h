@@ -18,5 +18,6 @@
 #define STOP_TAG 2
 #define NEW_BEST_TAG 3
 #define COUNT_TAG 4
+#define FINAL_TAG 5
 
 #endif //MI_PDP_CONSTANTS_H

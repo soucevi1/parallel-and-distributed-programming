@@ -9,6 +9,7 @@
 #include "coords.h"
 #include "pole.h"
 #include "solution.h"
+#include "comm_info.h"
 #include <queue>
 
 using namespace std;
@@ -16,6 +17,7 @@ using namespace std;
 class solver {
 public:
     solver(pole p, int i1, int i2, int c1, int c2, int cn);
+    solver(deque<comm_info> received);
 
     pole map;
 
@@ -25,8 +27,6 @@ public:
     int type1_cost;
     int type2_cost;
     int free_cost;
-
-    void print();
 
     struct initial_solution{
         solution starting_solution;

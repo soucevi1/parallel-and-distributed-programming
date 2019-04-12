@@ -20,7 +20,7 @@ struct dimensions {
     int y;
 };
 
-struct tile_info{
+struct tile_info {
     int i1;
     int i2;
     int c1;
@@ -76,7 +76,7 @@ dimensions get_dimensions(ifstream &f) {
 tile_info get_tileinfo(ifstream &f) {
 
     string line;
-    tile_info t = {0,0,0,0,0};
+    tile_info t = {0, 0, 0, 0, 0};
 
     getline(f, line);
 
@@ -91,7 +91,7 @@ tile_info get_tileinfo(ifstream &f) {
 }
 
 
-vector<coords> get_forbidden_fields(ifstream &f){
+vector<coords> get_forbidden_fields(ifstream &f) {
     string line;
     vector<coords> v;
 
@@ -101,12 +101,12 @@ vector<coords> get_forbidden_fields(ifstream &f){
 
     ss >> f_count;
 
-    for(int i=0; i<f_count; i++){
+    for (int i = 0; i < f_count; i++) {
 
         getline(f, line);
         stringstream str(line);
 
-        coords c(0,0);
+        coords c(0, 0);
         str >> c.y;
         str >> c.x;
 
@@ -116,18 +116,18 @@ vector<coords> get_forbidden_fields(ifstream &f){
     return v;
 }
 
-vector<int> precalculate_problem_counts(int problems, int proc_count){
+vector<int> precalculate_problem_counts(int problems, int proc_count) {
     vector<int> prob_counts(proc_count);
 
     prob_counts[0] = 0;
 
     int assigned = 0;
-    for(int i=1; i<proc_count-1; i++){
-        prob_counts[i] = (int)(problems/(proc_count-1));
+    for (int i = 1; i < proc_count - 1; i++) {
+        prob_counts[i] = (int) (problems / (proc_count - 1));
         assigned += prob_counts[i];
     }
 
-    prob_counts[proc_count-1] = problems - assigned;
+    prob_counts[proc_count - 1] = problems - assigned;
 
     return prob_counts;
 }
@@ -146,7 +146,7 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
     // ------- MASTER -----------------------------------------------
-    if(my_rank == 0){
+    if (my_rank == 0) {
 
         // Read input file
         string filename = get_filename(argc, argv);
@@ -183,18 +183,18 @@ int main(int argc, char **argv) {
          * kazdemu procesu posli cislo, kolik reseni dostane a pak mu jich tolik posli
          */
 
-        vector<int> count_problems_to_send = precalculate_problem_counts(q_size,proc_count);
+        vector<int> count_problems_to_send = precalculate_problem_counts(q_size, proc_count);
 
         cout << proc_count << " processes" << endl;
 
 
-        for(int i=1; i<proc_count; i++){
+        for (int i = 1; i < proc_count; i++) {
             MPI_Send(&count_problems_to_send[i], 1, MPI_INT, i, COUNT_TAG, MPI_COMM_WORLD);
         }
 
 
-        for(int i=0; i<proc_count; i++){
-            for(int j=0; j<count_problems_to_send[i]; j++){
+        for (int i = 0; i < proc_count; i++) {
+            for (int j = 0; j < count_problems_to_send[i]; j++) {
 
                 solution sol = s.initial_solutions.front().starting_solution;
                 coords pos = s.initial_solutions.front().position;
@@ -205,15 +205,27 @@ int main(int argc, char **argv) {
                 string cs = c.serialize();
 
                 MPI_Send(cs.c_str(), cs.length(), MPI_CHAR, i, WORK_TAG, MPI_COMM_WORLD);
-
-              /*  if(j == count_problems_to_send[i]-1){
-                    cout << "============== " << i << " ==============" << endl;
-                    sol.print_solution();
-                    cout << pos << endl;
-                    c.best.print_solution();
-                    cout << "============== /" << i << " ==============" << endl;
-                }*/
             }
+        }
+
+        int working_slaves = proc_count - 1;
+        vector<solution> slave_solutions;
+
+        while (working_slaves > 0) {
+
+            MPI_Status stat;
+            MPI_Probe(MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
+
+            int recv_len;
+            MPI_Get_count(&stat, MPI_CHAR, &recv_len);
+            char *m = new char[recv_len];
+
+            MPI_Recv(m, recv_len, MPI_CHAR, MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
+
+            solution recvd_sol = solution(m);
+
+            slave_solutions.push_back(recvd_sol);
+            working_slaves--;
         }
 
         /*
@@ -224,10 +236,17 @@ int main(int argc, char **argv) {
          *  Az prijmes reseni od vsech, vyber z nich nejlepsi
          */
 
-        cout << "The BEST starting_solution is:" << endl;
+        solution the_best = slave_solutions[0];
+        for (int i = 1; i < slave_solutions.size(); i++) {
+            if (slave_solutions[i].cost > the_best.cost) {
+                the_best = slave_solutions[i];
+            }
+        }
+        cout << "The BEST solution is:" << endl;
+        the_best.print_solution();
 
 
-    // ------- SLAVE -----------------------------------------------
+        // ------- SLAVE -----------------------------------------------
     } else {
 
         /*
@@ -249,12 +268,12 @@ int main(int argc, char **argv) {
         int solution_count = 0;
         int solutions_received = 0;
 
-        while(true){
+        while (true) {
             MPI_Status stat;
             MPI_Probe(MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &stat);
 
             bool finish = false;
-            switch(stat.MPI_TAG){
+            switch (stat.MPI_TAG) {
 
                 case STOP_TAG:
                     finish = true;
@@ -278,21 +297,22 @@ int main(int argc, char **argv) {
                     MPI_Recv(m, recvd, MPI_CHAR, stat.MPI_SOURCE, stat.MPI_TAG, MPI_COMM_WORLD, &stat);
                     comm_info recvd_c = comm_info(string(m));
                     received_work.push_back(recvd_c);
-                    solutions_received ++;
-                    if(solutions_received == solution_count){
+                    solutions_received++;
+                    if (solutions_received == solution_count) {
                         finish = true;
                     }
                     break;
             }
 
-            if(finish){
+            if (finish) {
                 break;
             }
         }
 
-        // Pod timto komentem zacit vypocty
-        // Ve vypoctech se obcas kouknout, jestli nahodou nemam zpravu se zlepsenim
-
+        solver s = solver(received_work);
+        s.solve();
+        string best_serial = s.best_solution.serialize();
+        MPI_Send(best_serial.c_str(), best_serial.length(), MPI_CHAR, 0, FINAL_TAG, MPI_COMM_WORLD);
     }
 
     MPI_Finalize();

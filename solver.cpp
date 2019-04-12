@@ -19,6 +19,29 @@ solver::solver(pole p, int i1, int i2, int c1, int c2, int cn) : map(p),
                                                                  free_cost(cn) {}
 
 
+solver::solver(deque<comm_info> received) {
+
+    best_solution = received[0].best;
+
+    for(int i=0; i<received.size(); i++){
+        initial_solution is;
+        is.starting_solution = received[i].sol;
+        is.position = received[i].position;
+        initial_solutions.push_back(is);
+
+        if(best_solution.cost < received[i].best.cost){
+            best_solution = received[i].best;
+        }
+    }
+
+    type1_len = received[0].sol.type1_length;
+    type2_len = received[0].sol.type2_length;
+
+    type1_cost = received[0].sol.type1_cost;
+    type2_cost = received[0].sol.type2_cost;
+    free_cost = received[0].sol.empty_cost;
+}
+
 void solver::generate_initial_solutions(int required_levels) {
     deque<initial_solution> q;
 
@@ -137,20 +160,13 @@ void solver::generate_initial_solutions(int required_levels) {
 
 void solver::solve() {
 
-    int required_number_of_levels = 1;
-
-    generate_initial_solutions(required_number_of_levels);
-
     // Every worker gets one subproblem to solve
     int q_size = (int) initial_solutions.size();
-    cout << "Subproblems generated: " << q_size << endl;
 
+#pragma omp parallel for default(shared) schedule(guided)
     for (int i = 0; i < q_size; i++) {
         initiate_search(initial_solutions[i].starting_solution, initial_solutions[i].position);
     }
-
-    cout << "The BEST starting_solution is:" << endl;
-    best_solution.print_solution();
 }
 
 void solver::find_cover(solution &s, coords &position, int tile_length, int tile_orientation, int tile_type) {
@@ -248,15 +264,10 @@ void solver::initiate_search(solution &s, coords initial_position) {
         return;
     }
 
-    //cout << "Phase 1/5" << endl;
     find_cover(s, initial_position, type1_len, HORIZONTAL, 1);
-    //cout << "Phase 2/5" << endl;
     find_cover(s, initial_position, type2_len, HORIZONTAL, 2);
-    //cout << "Phase 3/5" << endl;
     find_cover(s, initial_position, type1_len, VERTICAL, 1);
-    //cout << "Phase 4/5" << endl;
     find_cover(s, initial_position, type2_len, VERTICAL, 2);
-    //cout << "Phase 5/5" << endl;
     find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
 }
 
@@ -276,3 +287,5 @@ void solver::compare_with_best(solution &sol) {
         };
     }
 }
+
+
