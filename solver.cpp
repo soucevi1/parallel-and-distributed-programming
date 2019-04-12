@@ -49,7 +49,29 @@ solver::solver(deque<comm_info> received, int pc, int rank) : total_processes(pc
     omp_init_lock(&best_lock);
 }
 
-void solver::generate_initial_solutions(int required_levels) {
+
+solver::solver() {}
+
+solver::solver(comm_info received, int pc, int rank) : total_processes(pc), my_rank(rank) {
+    best_solution = received.best;
+    map = received.sol.current_state;
+
+    type1_len = received.sol.type1_length;
+    type2_len = received.sol.type2_length;
+
+    type1_cost = received.sol.type1_cost;
+    type2_cost = received.sol.type2_cost;
+    free_cost = received.sol.empty_cost;
+
+    best_updated = false;
+    omp_init_lock(&best_lock);
+
+    generating_solution = received.sol;
+
+    generating_position = received.position;
+}
+
+void solver::generate_solutions_for_slaves(int required_levels) {
     deque<initial_solution> q;
 
     int free_count = (int) (map.x_dim * map.y_dim - map.forbidden_count);
@@ -165,7 +187,121 @@ void solver::generate_initial_solutions(int required_levels) {
     initial_solutions = q;
 }
 
+
+void solver::generate_initial_solutions(int required_levels) {
+    deque<initial_solution> q;
+
+    solution sol = generating_solution;
+
+    coords current_position = generating_position;
+    if (!sol.current_state.is_free(current_position.x, current_position.y)) {
+        current_position = sol.next_free_position(current_position);
+    }
+
+    initial_solution is;
+    is.starting_solution = sol;
+    is.position = current_position;
+
+    q.push_back(is);
+
+    int place_count = is.starting_solution.current_state.x_dim * is.starting_solution.current_state.y_dim;
+
+    for (int i = 1; i < required_levels; i++) {
+
+        // For each tree level,
+        // generate subproblems from the whole queue
+
+        deque<initial_solution> q_2;
+
+        int queue_size = (int) q.size();
+
+        if (queue_size > place_count * 10) {
+            break;
+        }
+
+        for (int j = 0; j < queue_size; j++) {
+            initial_solution tmp = q.front();
+            q.pop_front();
+
+            current_position = tmp.position;
+            if (current_position.x == -1) {
+                continue;
+            }
+
+            coords next_position;
+
+            // TYPE 1 horizontal
+            if (tmp.starting_solution.check_if_tile_fits(type1_len, current_position, HORIZONTAL)) {
+                initial_solution tmp1 = tmp;
+                tmp1.starting_solution.add_tile(type1_len, 1, current_position, HORIZONTAL);
+                tmp1.starting_solution.recalculate_cost();
+                compare_with_best(tmp1.starting_solution, false);
+                next_position = tmp1.starting_solution.next_free_position(current_position);
+                tmp1.position = next_position;
+                tmp1.starting_solution.delib_empty_in_row = 0;
+                q_2.push_back(tmp1);
+            }
+
+            // TYPE 2 horizontal
+            if (tmp.starting_solution.check_if_tile_fits(type2_len, current_position, HORIZONTAL)) {
+                initial_solution tmp1 = tmp;
+                tmp1.starting_solution.add_tile(type2_len, 2, current_position, HORIZONTAL);
+                tmp1.starting_solution.recalculate_cost();
+                compare_with_best(tmp1.starting_solution, false);
+                next_position = tmp1.starting_solution.next_free_position(current_position);
+                tmp1.position = next_position;
+                tmp1.starting_solution.delib_empty_in_row = 0;
+                q_2.push_back(tmp1);
+            }
+
+            // TYPE 1 vertical
+            if (tmp.starting_solution.check_if_tile_fits(type1_len, current_position, VERTICAL)) {
+                initial_solution tmp1 = tmp;
+                tmp1.starting_solution.add_tile(type1_len, 1, current_position, VERTICAL);
+                tmp1.starting_solution.recalculate_cost();
+                compare_with_best(tmp1.starting_solution, false);
+                next_position = tmp1.starting_solution.next_free_position(current_position);
+                tmp1.position = next_position;
+                tmp1.starting_solution.delib_empty_in_row = 0;
+                q_2.push_back(tmp1);
+            }
+
+            // TYPE 2 vertical
+            if (tmp.starting_solution.check_if_tile_fits(type2_len, current_position, VERTICAL)) {
+                initial_solution tmp1 = tmp;
+                tmp1.starting_solution.add_tile(type2_len, 2, current_position, VERTICAL);
+                tmp1.starting_solution.recalculate_cost();
+                compare_with_best(tmp1.starting_solution, false);
+                next_position = tmp1.starting_solution.next_free_position(current_position);
+                tmp1.position = next_position;
+                tmp1.starting_solution.delib_empty_in_row = 0;
+                q_2.push_back(tmp1);
+            }
+
+            // LEAVE EMPTY
+            next_position = tmp.starting_solution.next_free_position(current_position);
+            initial_solution tmp1 = tmp;
+            tmp1.position = next_position;
+            tmp1.starting_solution.delib_empty_in_row++;
+            tmp1.starting_solution.deliberately_empty_count++;
+            tmp1.starting_solution.recalculate_cost();
+            compare_with_best(tmp1.starting_solution, false);
+            if (!tmp1.starting_solution.can_fit_tile_behind(current_position) &&
+                !tmp1.starting_solution.can_fit_tile_above(current_position)) {
+                q_2.push_back(tmp1);
+            }
+        }
+
+        q = q_2;
+    }
+
+    initial_solutions = q;
+}
+
 void solver::solve() {
+
+    int required_levels = 4;
+    generate_initial_solutions(required_levels);
 
     // Every worker gets one subproblem to solve
     int q_size = (int) initial_solutions.size();
@@ -352,6 +488,5 @@ void solver::send_best_message() {
     }
 }
 
-solver::solver() {}
 
 

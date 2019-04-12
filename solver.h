@@ -19,6 +19,7 @@ public:
     solver();
     solver(pole p, int i1, int i2, int c1, int c2, int cn);
     solver(deque<comm_info> received, int pc, int rank);
+    solver(comm_info received, int pc, int rank);
 
     pole map;
 
@@ -38,11 +39,14 @@ public:
         coords position;
     };
 
+    coords generating_position;
+    solution generating_solution;
     solution best_solution;
 
     omp_lock_t best_lock;
 
     void generate_initial_solutions(int required_levels);
+    void generate_solutions_for_slaves(int required_levels);
 
     deque<initial_solution> initial_solutions;
 
