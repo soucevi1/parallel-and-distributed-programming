@@ -352,4 +352,6 @@ void solver::send_best_message() {
     }
 }
 
+solver::solver() {}
+
 

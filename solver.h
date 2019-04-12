@@ -16,6 +16,7 @@ using namespace std;
 
 class solver {
 public:
+    solver();
     solver(pole p, int i1, int i2, int c1, int c2, int cn);
     solver(deque<comm_info> received, int pc, int rank);
 

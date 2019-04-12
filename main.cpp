@@ -132,14 +132,86 @@ vector<int> precalculate_problem_counts(int problems, int proc_count) {
     return prob_counts;
 }
 
-int main(int argc, char **argv) {
+solver generate_solver(string & filename){
 
-    int my_rank;
     dimensions dims = dimensions();
     tile_info t_info = tile_info();
     unsigned long forbidden_count = 0;
     vector<coords> forbidden;
     ifstream f;
+
+    if (filename.empty()) {
+        throw "Empty string was passed as filename";
+    }
+    f.open(filename, ios_base::in);
+    if (f.is_open()) {
+        dims = get_dimensions(f);
+        t_info = get_tileinfo(f);
+        forbidden = get_forbidden_fields(f);
+        forbidden_count = forbidden.size();
+
+    } else {
+        throw "Cannot open file";
+    }
+    f.close();
+
+    // Generate initial subproblems
+    pole p(dims.x, dims.y, forbidden_count, forbidden);
+    solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
+    return s;
+}
+
+void send_problem_counts(int proc_count, vector<int> & count_problems_to_send){
+    for (int i = 1; i < proc_count; i++) {
+        MPI_Send(&count_problems_to_send[i], 1, MPI_INT, i, COUNT_TAG, MPI_COMM_WORLD);
+    }
+}
+
+void send_subproblems(int proc_count, vector<int> & count_problems_to_send, solver & s){
+    for (int i = 0; i < proc_count; i++) {
+        for (int j = 0; j < count_problems_to_send[i]; j++) {
+
+            solution sol = s.initial_solutions.front().starting_solution;
+            coords pos = s.initial_solutions.front().position;
+            s.initial_solutions.pop_front();
+
+            comm_info c = comm_info(sol, pos, s.best_solution);
+
+            string cs = c.serialize();
+
+            MPI_Send(cs.c_str(), cs.length(), MPI_CHAR, i, WORK_TAG, MPI_COMM_WORLD);
+        }
+    }
+}
+
+solution get_slave_solution(){
+    MPI_Status stat;
+    MPI_Probe(MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
+
+    int recv_len;
+    MPI_Get_count(&stat, MPI_CHAR, &recv_len);
+    vector<char> m(recv_len);
+
+    MPI_Recv(&m[0], recv_len, MPI_CHAR, MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
+    solution recvd_sol = solution(string(m.begin(), m.end()));
+
+    return recvd_sol;
+}
+
+solution choose_the_best_solution(vector<solution> & slave_solutions){
+    solution the_best = slave_solutions[0];
+    for (int i = 1; i < slave_solutions.size(); i++) {
+        if (slave_solutions[i].cost > the_best.cost) {
+            the_best = slave_solutions[i];
+        }
+    }
+    return the_best;
+}
+
+int main(int argc, char **argv) {
+
+    int my_rank;
+
 
     MPI_Init(&argc, &argv);
 
@@ -153,80 +225,41 @@ int main(int argc, char **argv) {
 
         // Read input file
         string filename = get_filename(argc, argv);
-        if (filename.empty()) {
+
+        solver s;
+        try {
+            s = generate_solver(filename);
+        } catch(const char * e){
+            cout << e << endl;
             return 1;
         }
-        f.open(filename, ios_base::in);
-        if (f.is_open()) {
-            dims = get_dimensions(f);
-            t_info = get_tileinfo(f);
-            forbidden = get_forbidden_fields(f);
-            forbidden_count = forbidden.size();
-
-        } else {
-            cout << "Cannot open file" << endl;
-            return -1;
-        }
-        f.close();
 
         clock_t begin_measure = clock();
 
-        // Generate initial subproblems
-        int required_levels = 5;
-        pole p(dims.x, dims.y, forbidden_count, forbidden);
-        solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
+        int required_levels = 4;
         s.generate_initial_solutions(required_levels);
-
         int q_size = (int) s.initial_solutions.size();
         cout << "Subproblems generated: " << q_size << endl;
 
         vector<int> count_problems_to_send = precalculate_problem_counts(q_size, proc_count);
 
-        for (int i = 1; i < proc_count; i++) {
-            MPI_Send(&count_problems_to_send[i], 1, MPI_INT, i, COUNT_TAG, MPI_COMM_WORLD);
-        }
+        send_problem_counts(proc_count, count_problems_to_send);
 
-        for (int i = 0; i < proc_count; i++) {
-            for (int j = 0; j < count_problems_to_send[i]; j++) {
+    send_subproblems(proc_count, count_problems_to_send, s);
 
-                solution sol = s.initial_solutions.front().starting_solution;
-                coords pos = s.initial_solutions.front().position;
-                s.initial_solutions.pop_front();
-
-                comm_info c = comm_info(sol, pos, s.best_solution);
-
-                string cs = c.serialize();
-
-                MPI_Send(cs.c_str(), cs.length(), MPI_CHAR, i, WORK_TAG, MPI_COMM_WORLD);
-            }
-        }
 
         int working_slaves = proc_count - 1;
         vector<solution> slave_solutions;
 
         while (working_slaves > 0) {
 
-            MPI_Status stat;
-            MPI_Probe(MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
-
-            int recv_len;
-            MPI_Get_count(&stat, MPI_CHAR, &recv_len);
-            vector<char> m(recv_len);
-
-            MPI_Recv(&m[0], recv_len, MPI_CHAR, MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
-
-            solution recvd_sol = solution(string(m.begin(), m.end()));
+            solution recvd_sol = get_slave_solution();
 
             slave_solutions.push_back(recvd_sol);
             working_slaves--;
         }
 
-        solution the_best = slave_solutions[0];
-        for (int i = 1; i < slave_solutions.size(); i++) {
-            if (slave_solutions[i].cost > the_best.cost) {
-                the_best = slave_solutions[i];
-            }
-        }
+        solution the_best = choose_the_best_solution(slave_solutions);
         cout << "The BEST solution is:" << endl;
         the_best.print_solution();
 
