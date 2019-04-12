@@ -145,6 +145,9 @@ int main(int argc, char **argv) {
 
     MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
+    int proc_count;
+    MPI_Comm_size(MPI_COMM_WORLD, &proc_count);
+
     // ------- MASTER -----------------------------------------------
     if (my_rank == 0) {
 
@@ -166,32 +169,22 @@ int main(int argc, char **argv) {
         }
         f.close();
 
+        clock_t begin_measure = clock();
+
         // Generate initial subproblems
+        int required_levels = 5;
         pole p(dims.x, dims.y, forbidden_count, forbidden);
         solver s(p, t_info.i1, t_info.i2, t_info.c1, t_info.c2, t_info.cn);
-        int required_levels = 4;
         s.generate_initial_solutions(required_levels);
+
         int q_size = (int) s.initial_solutions.size();
         cout << "Subproblems generated: " << q_size << endl;
 
-        int proc_count;
-        MPI_Comm_size(MPI_COMM_WORLD, &proc_count);
-
-        /*
-         * Rozpocitej nagenerovana reseni,
-         *
-         * kazdemu procesu posli cislo, kolik reseni dostane a pak mu jich tolik posli
-         */
-
         vector<int> count_problems_to_send = precalculate_problem_counts(q_size, proc_count);
-
-        cout << proc_count << " processes" << endl;
-
 
         for (int i = 1; i < proc_count; i++) {
             MPI_Send(&count_problems_to_send[i], 1, MPI_INT, i, COUNT_TAG, MPI_COMM_WORLD);
         }
-
 
         for (int i = 0; i < proc_count; i++) {
             for (int j = 0; j < count_problems_to_send[i]; j++) {
@@ -218,23 +211,15 @@ int main(int argc, char **argv) {
 
             int recv_len;
             MPI_Get_count(&stat, MPI_CHAR, &recv_len);
-            char *m = new char[recv_len];
+            vector<char> m(recv_len);
 
-            MPI_Recv(m, recv_len, MPI_CHAR, MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
+            MPI_Recv(&m[0], recv_len, MPI_CHAR, MPI_ANY_SOURCE, FINAL_TAG, MPI_COMM_WORLD, &stat);
 
-            solution recvd_sol = solution(m);
+            solution recvd_sol = solution(string(m.begin(), m.end()));
 
             slave_solutions.push_back(recvd_sol);
             working_slaves--;
         }
-
-        /*
-         *  Dokud jsi nedostal odpoved od vsech, prijimej zpravy
-         *
-         *  Kdyz prijmes reseni, odpovez STOP_TAGem
-         *
-         *  Az prijmes reseni od vsech, vyber z nich nejlepsi
-         */
 
         solution the_best = slave_solutions[0];
         for (int i = 1; i < slave_solutions.size(); i++) {
@@ -245,24 +230,14 @@ int main(int argc, char **argv) {
         cout << "The BEST solution is:" << endl;
         the_best.print_solution();
 
+        clock_t end_measure = clock();
+        double elapsed_secs = double(end_measure - begin_measure) / CLOCKS_PER_SEC;
+
+        cout << "Finished in " << elapsed_secs << " seconds." << endl;
+
 
         // ------- SLAVE -----------------------------------------------
     } else {
-
-        /*
-         *  Nekonecny cyklus
-         *
-         *  Koukni, jestli je k dispozici zprava
-         *  pokud ano:
-         *      pokud je to STOP_TAG:
-         *          breakni
-         *      pokud COUNT_TAG:
-         *          nacti si pocet
-         *      jinak (WORK_TAG):
-         *          prijmi podproblem
-         *          pokud uz mas vsechny, breakni
-         *
-         */
 
         deque<comm_info> received_work;
         int solution_count = 0;
@@ -275,27 +250,17 @@ int main(int argc, char **argv) {
             bool finish = false;
             switch (stat.MPI_TAG) {
 
-                case STOP_TAG:
-                    finish = true;
-                    cout << my_rank << ": STOP" << endl;
-                    break;
-
-                case NEW_BEST_TAG:
-                    /* Assign new best */
-                    break;
-
                 case COUNT_TAG:
                     MPI_Recv(&solution_count, 1, MPI_INT, MPI_ANY_SOURCE, COUNT_TAG, MPI_COMM_WORLD, &stat);
                     cout << my_rank << ": problems: " << solution_count << endl;
                     break;
 
                 case WORK_TAG:
-                    char *m;
                     int recvd;
                     MPI_Get_count(&stat, MPI_CHAR, &recvd);
-                    m = new char[recvd];
-                    MPI_Recv(m, recvd, MPI_CHAR, stat.MPI_SOURCE, stat.MPI_TAG, MPI_COMM_WORLD, &stat);
-                    comm_info recvd_c = comm_info(string(m));
+                    vector<char>m(recvd);
+                    MPI_Recv(&m[0], recvd, MPI_CHAR, stat.MPI_SOURCE, stat.MPI_TAG, MPI_COMM_WORLD, &stat);
+                    comm_info recvd_c = comm_info(string(m.begin(), m.end()));
                     received_work.push_back(recvd_c);
                     solutions_received++;
                     if (solutions_received == solution_count) {
@@ -309,7 +274,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        solver s = solver(received_work);
+        solver s = solver(received_work, proc_count, my_rank);
         s.solve();
         string best_serial = s.best_solution.serialize();
         MPI_Send(best_serial.c_str(), best_serial.length(), MPI_CHAR, 0, FINAL_TAG, MPI_COMM_WORLD);

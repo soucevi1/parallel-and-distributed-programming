@@ -17,7 +17,7 @@ using namespace std;
 class solver {
 public:
     solver(pole p, int i1, int i2, int c1, int c2, int cn);
-    solver(deque<comm_info> received);
+    solver(deque<comm_info> received, int pc, int rank);
 
     pole map;
 
@@ -28,12 +28,18 @@ public:
     int type2_cost;
     int free_cost;
 
+    int total_processes;
+    int my_rank;
+    bool best_updated;
+
     struct initial_solution{
         solution starting_solution;
         coords position;
     };
 
     solution best_solution;
+
+    omp_lock_t best_lock;
 
     void generate_initial_solutions(int required_levels);
 
@@ -45,7 +51,11 @@ public:
 
     void initiate_search(solution & s, coords initial_position);
 
-    void compare_with_best(solution &sol);
+    void compare_with_best(solution &sol, bool should_tell_others);
+
+    void check_best_message();
+
+    void send_best_message();
 
 };
 
