@@ -5,6 +5,7 @@
 #include <vector>
 #include <ctime>
 #include <omp.h>
+#include <cstdlib>
 
 #include "pole.h"
 #include "solution.h"
@@ -32,15 +33,21 @@ string get_filename(int argc, char **argv) {
     int opt;
     string filename;
 
-    if (argc != 3) {
+    if (argc != 5) {
         cout << "Wrong number of args (" << argc << ")" << endl;
         return "";
     }
 
-    while ((opt = getopt(argc, argv, "f:")) != -1) {
+    string threads;
+
+    while ((opt = getopt(argc, argv, "f:t:")) != -1) {
         switch (opt) {
             case 'f':
                 filename = optarg;
+                break;
+
+            case 't':
+                threads = optarg;
                 break;
 
             case ':':
@@ -55,6 +62,7 @@ string get_filename(int argc, char **argv) {
         }
     }
 
+    omp_set_num_threads(atoi(threads.c_str()));
     return filename;
 }
 
