@@ -147,7 +147,6 @@ void solver::solve() {
 #pragma omp parallel default(shared)
         {
 #pragma omp single
-            //cout << "Threads: " <<omp_get_num_threads() << endl;
             initiate_search(s.starting_solution, s.position);
         };
     }
@@ -156,7 +155,7 @@ void solver::solve() {
     best_solution.print_solution();
 }
 
-void solver::find_cover(solution &s, const coords &position, int tile_length, int tile_orientation, int tile_type) {
+void solver::find_cover(solution s, const coords position, int tile_length, int tile_orientation, int tile_type) {
     bool tile_placed = false;
     bool dfc_increased = false;
 
@@ -233,9 +232,9 @@ void solver::find_cover(solution &s, const coords &position, int tile_length, in
     find_cover(s, next_position, type1_len, VERTICAL, 1);
 #pragma omp task if (task_condition)
     find_cover(s, next_position, type2_len, VERTICAL, 2);
-//#pragma omp task if (task_condition)
+//#pragma omp task if (task_condition) shared(s)
     find_cover(s, next_position, 0, LEAVE_EMPTY, 0);
-#pragma omp taskwait
+//#pragma omp taskwait
 
     if (tile_placed) {
         s.remove_tile(tile_length, tile_type, position, tile_orientation);
@@ -266,10 +265,10 @@ void solver::initiate_search(solution s, coords initial_position) {
     find_cover(s, initial_position, type1_len, VERTICAL, 1);
 #pragma omp task
     find_cover(s, initial_position, type2_len, VERTICAL, 2);
-//#pragma omp task
+#pragma omp task
     find_cover(s, initial_position, 0, LEAVE_EMPTY, 0);
 
-#pragma omp taskwait
+//#pragma omp taskwait
 }
 
 void solver::compare_with_best(solution &sol) {

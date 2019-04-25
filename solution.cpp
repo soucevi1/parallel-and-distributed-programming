@@ -43,7 +43,7 @@ bool solution::check_if_tile_fits(int length, const coords &pos, int direction) 
 
     } else if (direction == HORIZONTAL) {
 
-        if (current_state.x_dim < pos.y + length) {
+        if (current_state.y_dim < pos.y + length) {
             return false;
         }
 

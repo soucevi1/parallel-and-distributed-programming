@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <ctime>
+#include <cstdlib>
 
 #include "pole.h"
 #include "solution.h"
@@ -32,15 +33,21 @@ string get_filename(int argc, char **argv) {
     int opt;
     string filename;
 
-    if (argc != 3) {
+    if (argc != 5) {
         cout << "Wrong number of args (" << argc << ")" << endl;
         return "";
     }
 
-    while ((opt = getopt(argc, argv, "f:")) != -1) {
+    string threads;
+
+    while ((opt = getopt(argc, argv, "f:t:")) != -1) {
         switch (opt) {
             case 'f':
                 filename = optarg;
+                break;
+
+            case 't':
+                threads = optarg;
                 break;
 
             case ':':
@@ -55,6 +62,7 @@ string get_filename(int argc, char **argv) {
         }
     }
 
+    omp_set_num_threads(atoi(threads.c_str()));
     return filename;
 }
 
@@ -116,10 +124,15 @@ vector<coords> get_forbidden_fields(ifstream &f){
 
 int main(int argc, char **argv) {
 
+    double begin = omp_get_wtime();
+
     string filename = get_filename(argc, argv);
     if (filename.empty()) {
         return 1;
     }
+
+
+    cout << "File: " << filename << endl;
 
     ifstream f;
     f.open(filename, ios_base::in);
@@ -149,7 +162,6 @@ int main(int argc, char **argv) {
 
     // MAIN FUNCTION CALL, measuring the time
     //clock_t begin = clock();
-    double begin = omp_get_wtime();
 
     s.solve();
 
