@@ -306,7 +306,7 @@ void solver::solve() {
     // Every worker gets one subproblem to solve
     int q_size = (int) initial_solutions.size();
 
-#pragma omp parallel for default(shared) firstprivate(my_rank) firstprivate(total_processes) schedule(guided)
+#pragma omp parallel for default(shared) schedule(guided)
     for (int i = 0; i < q_size; i++) {
         initiate_search(initial_solutions[i].starting_solution, initial_solutions[i].position);
     }

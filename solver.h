@@ -11,6 +11,7 @@
 #include "solution.h"
 #include "comm_info.h"
 #include <queue>
+#include <omp.h>
 
 using namespace std;
 
