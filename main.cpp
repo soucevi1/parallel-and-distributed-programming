@@ -6,6 +6,7 @@
 #include <ctime>
 #include <omp.h>
 #include <mpi.h>
+#include <cstdlib>
 
 #include "pole.h"
 #include "solution.h"
@@ -32,15 +33,21 @@ string get_filename(int argc, char **argv) {
     int opt;
     string filename;
 
-    if (argc != 3) {
+    if (argc != 5) {
         cout << "Wrong number of args (" << argc << ")" << endl;
         return "";
     }
 
-    while ((opt = getopt(argc, argv, "f:")) != -1) {
+    string threads;
+
+    while ((opt = getopt(argc, argv, "f:t:")) != -1) {
         switch (opt) {
             case 'f':
                 filename = optarg;
+                break;
+
+            case 't':
+                threads = optarg;
                 break;
 
             case ':':
@@ -55,8 +62,10 @@ string get_filename(int argc, char **argv) {
         }
     }
 
+    omp_set_num_threads(atoi(threads.c_str()));
     return filename;
 }
+
 
 dimensions get_dimensions(ifstream &f) {
     string line;
@@ -212,10 +221,15 @@ int main(int argc, char **argv) {
     int proc_count;
     MPI_Comm_size(MPI_COMM_WORLD, &proc_count);
 
+    string filename = get_filename(argc, argv);
+
     // ================================ MASTER ======================================
     if (my_rank == 0) {
+
+        // TIME MEASURE BEGINS
+        double begin_measure = MPI_Wtime();
+
         // Read input file
-        string filename = get_filename(argc, argv);
 
         solver s;
         try {
@@ -224,9 +238,6 @@ int main(int argc, char **argv) {
             cout << e << endl;
             return 1;
         }
-
-        // TIME MEASURE BEGINS
-        clock_t begin_measure = clock();
 
         int required_levels = 4;
 
@@ -302,8 +313,8 @@ int main(int argc, char **argv) {
         master_best.print_solution();
 
         // TIME MEASURE ENDS
-        clock_t end_measure = clock();
-        double elapsed_secs = double(end_measure - begin_measure) / CLOCKS_PER_SEC;
+        double end_measure = MPI_Wtime();
+        double elapsed_secs = end_measure - begin_measure;
 
         cout << "Finished in " << elapsed_secs << " seconds." << endl;
 

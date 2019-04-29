@@ -1,0 +1,199 @@
+1 OK 0.005     | 0,012   | 0.007  | 0.354
+2 OK 1.211     | 1,671   | 0.34   | 0.789
+3 OK 7.510     | 34,756  | 2.07   | 2.333
+4 OK 1249.48   |
+5 OK 287.239   |         | 0.58   | 0.663
+6 OK 0.162     | 1.469   | 0.11   | 0.225
+7 OK 39.396    |         | 6.19   | 6.589
+8 nedobehla    |         | 2008   |
+9 OK 55.890    |         | 7.03   | 13.304
+10 OK 1053     |         | 106    |
+11 OK 1.647    | 11.306  | 0.35   | 1.115
+12 OK 133.007  |         | 27.6   | 47.140
+
+
+
+mereni - u sekvencniho staci 3 instance o cca 5-20 minutach
+       - ty same instance merit paralelne
+       - zkusit ruzny pocet vlaken (nastavit uvnitr programu)
+       - u MPI staci 3 procesory, pokud nepracuje master
+       - MPI ma vlastni mereni casu
+
+
+Mereni
+======
+
+mpi u 9 a 10 mereny i rucne
+data_p 12 a 9 zkontrolovat, jestli sedi obe mereni
+
+5
+---------------------
+seq 31730
+
+task4 31734
+task6 31735
+task8 31736
+task10 31737 36178
+task12 31738 36179
+task14 31739 36180
+task16 31740 36181
+task18 31742 36182
+task20 31743 36183
+
+data4 31776
+data6 31777
+data8 31778
+data10 31779
+data12 31780
+data14 31781
+data16 31782
+data18 31783
+data20 31784
+
+mpi2p1t 32024
+mpi2p4t 32025
+mpi2p8t 32026
+mpi2p12t 32027
+mpi2p16t 32028
+mpi2p20t 32029
+
+mpi3p1t 36192
+mpi3p2t 36193
+mpi3p4t 36194
+mpi3p6t 36195
+mpi3p8t 36196
+mpi3p10t 36197
+mpi3p12t 36198
+mpi3p14t 36199
+mpi3p16t 36200
+mpi3p18t 36201
+mpi3p20t 36202
+
+10
+---------------------
+seq 31731
+
+task4 31744
+task6 31745
+task8 31746
+task10 31747
+task12 31748
+task14 31749
+task16 31750
+task18 31751
+task20 31752
+
+data4 31785
+data6 31786
+data8 31787
+data10 31788
+data12 31789
+data14 31790
+data16 31791
+data18 31792
+data20 31793
+
+mpi2p1t 32030
+mpi2p4t 32031
+mpi2p8t 32032
+mpi2p12t 32033
+mpi2p16t 32034
+mpi2p20t 32035
+
+mpi3p1t 36296
+mpi3p2t 36297
+mpi3p4t 36298
+mpi3p6t
+mpi3p8t
+mpi3p10t
+mpi3p12t
+mpi3p14t
+mpi3p16t
+mpi3p18t
+mpi3p20t
+
+12
+---------------------
+seq 31732
+
+task4 31753
+task6 31754
+task8 31755
+task10 31756
+task12 31757
+task14 31758
+task16 31759
+task18 31760
+task20 31761
+
+data4 32005 36351
+data6 32006 
+data8 32007 36353
+data10 32008
+data12 32009 36354
+data14 32010
+data16 32011 36355
+data18 32012
+data20 32013 36356
+
+mpi2p1t 32037
+mpi2p4t 32038
+mpi2p8t 32039
+mpi2p12t 32040
+mpi2p16t 32041
+mpi2p20t 32042
+
+mpi3p1t 36213 36305
+mpi3p2t 36214 36306
+mpi3p4t 36215 36307
+mpi3p6t 36216 36308
+mpi3p8t 36217 36309
+mpi3p10t 36218 
+mpi3p12t 36219 36310
+mpi3p14t 36220
+mpi3p16t 36221 36311
+mpi3p18t 36222
+mpi3p20t 36223 36312
+
+9
+---------------------
+seq 31733
+
+task4 31762
+task6 31763
+task8 31764
+task10 31765
+task12 31766
+task14 31767
+task16 31768
+task18 31769
+task20 31770
+
+data4 32015 36358
+data6 32016
+data8 32017 36359
+data10 32018
+data12 32019 36360
+data14 32020
+data16 32021 36361
+data18 32022
+data20 32023 36362
+
+mpi2p1t 32045
+mpi2p4t 32046
+mpi2p8t 32047
+mpi2p12t 32048
+mpi2p16t 32049
+mpi2p20t 32050
+
+mpi3p1t 36272
+mpi3p2t 36273
+mpi3p4t 36274
+mpi3p6t 36275
+mpi3p8t 36276
+mpi3p10t 36277
+mpi3p12t 36278
+mpi3p14t 36279
+mpi3p16t 36280
+mpi3p18t 36281
+mpi3p20t 36282
