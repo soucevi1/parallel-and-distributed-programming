@@ -142,7 +142,7 @@ solver generate_solver(string &filename) {
         forbidden_count = forbidden.size();
 
     } else {
-        throw "Cannot open file";
+        throw "Cannot open file " + filename;
     }
     f.close();
 

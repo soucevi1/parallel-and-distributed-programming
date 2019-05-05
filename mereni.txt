@@ -22,9 +22,8 @@ mereni - u sekvencniho staci 3 instance o cca 5-20 minutach
 
 Mereni
 ======
-
-mpi u 9 a 10 mereny i rucne
 data_p 12 a 9 zkontrolovat, jestli sedi obe mereni
+mpi 2p je k nicemu
 
 5
 ---------------------
@@ -57,17 +56,17 @@ mpi2p12t 32027
 mpi2p16t 32028
 mpi2p20t 32029
 
-mpi3p1t 36192
+mpi3p1t 36192 36382
 mpi3p2t 36193
-mpi3p4t 36194
+mpi3p4t 36194 36384
 mpi3p6t 36195
-mpi3p8t 36196
+mpi3p8t 36196 36385
 mpi3p10t 36197
-mpi3p12t 36198
+mpi3p12t 36198 36386
 mpi3p14t 36199
-mpi3p16t 36200
+mpi3p16t 36200 36392
 mpi3p18t 36201
-mpi3p20t 36202
+mpi3p20t 36202 36393
 
 10
 ---------------------
@@ -100,17 +99,17 @@ mpi2p12t 32033
 mpi2p16t 32034
 mpi2p20t 32035
 
-mpi3p1t 36296
-mpi3p2t 36297
-mpi3p4t 36298
+mpi3p1t 36394
+mpi3p2t 
+mpi3p4t 36395
 mpi3p6t
-mpi3p8t
+mpi3p8t 36396
 mpi3p10t
-mpi3p12t
+mpi3p12t 36397
 mpi3p14t
-mpi3p16t
+mpi3p16t 36398
 mpi3p18t
-mpi3p20t
+mpi3p20t 36399
 
 12
 ---------------------
@@ -143,17 +142,17 @@ mpi2p12t 32040
 mpi2p16t 32041
 mpi2p20t 32042
 
-mpi3p1t 36213 36305
+mpi3p1t 36213 36305 36400
 mpi3p2t 36214 36306
-mpi3p4t 36215 36307
+mpi3p4t 36215 36307 36401
 mpi3p6t 36216 36308
-mpi3p8t 36217 36309
+mpi3p8t 36217 36309 36402
 mpi3p10t 36218 
-mpi3p12t 36219 36310
+mpi3p12t 36219 36310 36403
 mpi3p14t 36220
-mpi3p16t 36221 36311
+mpi3p16t 36221 36311 36404
 mpi3p18t 36222
-mpi3p20t 36223 36312
+mpi3p20t 36223 36312 36405
 
 9
 ---------------------
@@ -186,14 +185,14 @@ mpi2p12t 32048
 mpi2p16t 32049
 mpi2p20t 32050
 
-mpi3p1t 36272
+mpi3p1t 36272 36409
 mpi3p2t 36273
-mpi3p4t 36274
+mpi3p4t 36274 36410
 mpi3p6t 36275
-mpi3p8t 36276
+mpi3p8t 36276 36411
 mpi3p10t 36277
-mpi3p12t 36278
+mpi3p12t 36278 36412
 mpi3p14t 36279
-mpi3p16t 36280
+mpi3p16t 36280 36413
 mpi3p18t 36281
-mpi3p20t 36282
+mpi3p20t 36282 36414
