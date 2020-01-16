@@ -1,25 +1,25 @@
-# Paralelní a distribuované programování (semestrální práce)
-Najděte pokrytí mřížky R dlaždicemi ve tvaru písmene I kromě zakázaných políček uvedených v množině D s maximální cenou. 
+# Parallel and distributed programming (semestral work)
+Finding tiling over the R grid by I shaped bricks except forbidden squares from set D with maximal cost. Various versions -- sequential, task parallel, data parallel, multiprocess (MPI).
 
-## Vstupní data:
-* m,n = rozměry obdélníkové mřížky R[1..m,1..n], skládající se z m x n políček.
-* 2 < i1 = počet políček tvořících dlaždice tvaru písmene I a délky i1 (= tvaru I1).
-* i2 = počet políček tvořících dlaždice tvaru písmene I a délky i2 (= tvaru I2), i1 < i2 .
-* 0 < c1 = cena bezkolizního umístění dlaždice tvaru I1.
-* c2 = cena bezkolizního umístění dlaždice tvaru I2, c1 < c2.
-* cn < 0 = cena (penalizace) políčka nepokrytého žádnou dlaždicí.
-* k < m*n = počet zakázaných políček v mřížce R.
-* D[1..k] = pole souřadnic k zakázaných políček rozmístěných v mřížce R.
+## Input data:
+* m, n = size of rectangular grid R[1..m,1..n] composed from m x n squares.
+* 1 < i1 = the number of squares composing I brick of length i1 (= form I1).
+* i2 = the number of squares composing I brick of length i2 (= form I2), i1 < i2 .
+* 0 < c1 = price of placing I1 brick without any collision or penalty.
+* c2 = price of placing I1 brick without any collision or penalty, c1 < c2.
+* cn < 0 = penalty of square that is not covered by any I brick.
+* k < m*n = the number of forbidden squares R.
+* D[1..k] = array of coordinates of k forbidden squares inside the R grid.
 
-## Úkol:
-Najděte pokrytí mřížky R dlaždicemi ve tvaru písmene I kromě zakázaných políček uvedených v množině D s maximální cenou.
-Cena pokrytí, ve kterém zbylo q nepokrytých nezakázaných políček, je
+## Task:
+To find tiling over the R grid by I shaped bricks except forbidden squares from set D with maximal cost.
+The cost of a tiling, where q squares remain untiled, is
 
-**c1 * počet dlaždic tvaru I1 + c2 * počet dlaždic tvaru I2 + cn * q .**
+**c1 * number of I1 bricks + c2 * number of I2 bricks - cn * q .**
 
-Dlaždice tvaru I1 nebo I2 lze do pokrytí pokládat vodorovně nebo svisle.
+I1 and I2 bricks can be rotated for tiling, i.e., you can place them horizontaly or verticaly.
 
-## Výstup algoritmu:
-* Popis pokrytí mřížky R.
-Např. m x n-maticí identifikátorů, kde každá dlaždice I je jednoznačně určena skupinou políček se stejným ID >=1, nepokrytá políčka jsou prázdná a zakázaná políčka jsou reprezentovaná znakem 'Z'.
-* Výpis ceny, počtu a souřadnic nepokrytých políček. 
+## Output of the algorithm:
+* Description of a R grid tiling.
+For example, a m x n-matrix of integer identifiers where each I brick is represtended by a group of squares with the same unique ID >=1, untiled squares are empty, and forbiden squares are representbed by the 'F' letter.
+* Output of the cost, the number and positions of untiled squares.
